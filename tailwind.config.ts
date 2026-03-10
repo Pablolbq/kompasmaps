@@ -12,8 +12,15 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+    },
     extend: {
       colors: {
+        "surface-warm": "hsl(var(--surface-warm))",
+        "badge-casa": "hsl(var(--badge-casa))",
+        "badge-apartamento": "hsl(var(--badge-apartamento))",
+        "badge-terreno": "hsl(var(--badge-terreno))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
