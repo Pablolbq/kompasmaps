@@ -283,6 +283,7 @@ const Index = () => {
             selectedId={selectedId}
             onSelect={handleSelect}
             onDeselect={() => setSelectedId(null)}
+            onExpand={(id) => setDetailProperty(id)}
           />
         </main>
       </div>
