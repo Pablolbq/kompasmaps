@@ -186,7 +186,7 @@ const Index = () => {
                 <div className="space-y-3">
                   {filteredProperties.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      <MapPin size={28} className="mx-auto mb-2 opacity-40" />
+                      <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                       <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
                     </div>
                   ) : (
