@@ -213,14 +213,15 @@ export default function Admin() {
       return;
     }
     setSubmitting(true);
+    const isMidia = form.type === 'midia';
     const payload = {
       title: form.title,
       type: form.type,
       price: Number(form.price),
       area: Number(form.area),
-      bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
-      bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-      garage_spaces: form.garageSpaces ? Number(form.garageSpaces) : null,
+      bedrooms: !isMidia && form.bedrooms ? Number(form.bedrooms) : null,
+      bathrooms: !isMidia && form.bathrooms ? Number(form.bathrooms) : null,
+      garage_spaces: !isMidia && form.garageSpaces ? Number(form.garageSpaces) : null,
       address: form.address,
       neighborhood: form.neighborhood,
       cep: form.cep,
@@ -228,6 +229,7 @@ export default function Admin() {
       lng: form.lng ? Number(form.lng) : DEFAULT_LNG,
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
+      media_type: isMidia && form.mediaType ? form.mediaType : null,
     };
 
     const { error } = editingId
