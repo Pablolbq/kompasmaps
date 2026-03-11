@@ -23,8 +23,8 @@ function createCustomIcon(type: string, isSelected: boolean, hasSelection: boole
   const color = typeColors[type] || '#1a9a8a';
   const dimmed = hasSelection && !isSelected;
   const size = 36;
-  const opacity = dimmed ? '0.35' : '1';
-  const filter = dimmed ? 'grayscale(80%)' : 'none';
+  const opacity = dimmed ? '0.7' : '1';
+  const filter = dimmed ? 'grayscale(30%)' : 'none';
   const border = '3px solid white';
   const shadow = '0 4px 12px rgba(0,0,0,0.25)';
   return L.divIcon({
