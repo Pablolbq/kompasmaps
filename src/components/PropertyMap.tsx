@@ -74,10 +74,22 @@ interface PropertyMapProps {
   properties: Property[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onDeselect?: () => void;
   isMobile?: boolean;
 }
 
-export default function PropertyMap({ properties, selectedId, onSelect, isMobile = false }: PropertyMapProps) {
+function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!onDeselect) return;
+    const handler = () => onDeselect();
+    map.on('click', handler);
+    return () => { map.off('click', handler); };
+  }, [map, onDeselect]);
+  return null;
+}
+
+export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, isMobile = false }: PropertyMapProps) {
   return (
     <MapContainer
       center={[-25.0945, -50.1633]}
@@ -90,6 +102,7 @@ export default function PropertyMap({ properties, selectedId, onSelect, isMobile
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapBoundsUpdater properties={properties} />
+      <MapClickHandler onDeselect={onDeselect} />
       {properties.map((property) => {
         const isSelected = selectedId === property.id;
         const hasSelection = !!selectedId;
