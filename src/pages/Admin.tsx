@@ -91,9 +91,6 @@ export default function Admin() {
   }
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
-  const addImageField = () => setImageUrls((prev) => [...prev, '']);
-  const removeImageField = (index: number) => setImageUrls((prev) => prev.filter((_, i) => i !== index));
-  const updateImageField = (index: number, value: string) => setImageUrls((prev) => prev.map((v, i) => i === index ? value : v));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
