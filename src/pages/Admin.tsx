@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { PropertyType, propertyTypeLabels } from '@/data/properties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MapPin, Plus, ArrowLeft, Trash2, ImagePlus, Lock, LogOut, Loader2 } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
+import { MapPin, Plus, ArrowLeft, Lock, LogOut, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -17,7 +18,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [form, setForm] = useState(defaultForm);
-  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
@@ -90,9 +91,6 @@ export default function Admin() {
   }
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
-  const addImageField = () => setImageUrls((prev) => [...prev, '']);
-  const removeImageField = (index: number) => setImageUrls((prev) => prev.filter((_, i) => i !== index));
-  const updateImageField = (index: number, value: string) => setImageUrls((prev) => prev.map((v, i) => i === index ? value : v));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +99,6 @@ export default function Admin() {
       return;
     }
     setSubmitting(true);
-    const validImages = imageUrls.map(s => s.trim()).filter(Boolean);
     const { error } = await supabase.from('properties').insert({
       title: form.title,
       type: form.type,
@@ -114,7 +111,7 @@ export default function Admin() {
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
       lng: Number(form.lng),
-      images: validImages.length > 0 ? validImages : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
+      images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
     setSubmitting(false);
@@ -124,7 +121,7 @@ export default function Admin() {
     }
     toast.success('Imóvel adicionado com sucesso!');
     setForm(defaultForm);
-    setImageUrls(['']);
+    setImageUrls([]);
   };
 
   return (
@@ -212,40 +209,10 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Photo URLs */}
+          {/* Photos */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">Fotos</label>
-            <div className="space-y-2">
-              {imageUrls.map((url, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    className={`${inputClass} flex-1`}
-                    value={url}
-                    onChange={(e) => updateImageField(i, e.target.value)}
-                    placeholder={`URL da foto ${i + 1}`}
-                  />
-                  {imageUrls.length > 1 && (
-                    <button type="button" onClick={() => removeImageField(i)} className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {imageUrls.some(u => u.trim()) && (
-                <div className="flex gap-2 flex-wrap mt-2">
-                  {imageUrls.filter(u => u.trim()).map((url, i) => (
-                    <img key={i} src={url.trim()} alt={`Preview ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  ))}
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={addImageField}
-                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                <ImagePlus size={14} /> Adicionar mais uma foto
-              </button>
-            </div>
+            <ImageUploader images={imageUrls} onChange={setImageUrls} />
           </div>
 
           <div>
