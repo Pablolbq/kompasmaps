@@ -200,6 +200,7 @@ export default function Admin() {
       lat: String(p.lat),
       lng: String(p.lng),
       description: p.description,
+      mediaType: p.mediaType ?? '',
     });
     setImageUrls(p.images);
     setView('form');
