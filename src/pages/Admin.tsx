@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
-  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', image: '', description: '',
+  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', images: '', description: '',
 };
 
 export default function Admin() {
