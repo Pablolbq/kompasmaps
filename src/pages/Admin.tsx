@@ -135,6 +135,7 @@ export default function Admin() {
       garageSpaces: p.garageSpaces != null ? String(p.garageSpaces) : '',
       address: p.address,
       neighborhood: p.neighborhood,
+      cep: (p as any).cep ?? '',
       lat: String(p.lat),
       lng: String(p.lng),
       description: p.description,
