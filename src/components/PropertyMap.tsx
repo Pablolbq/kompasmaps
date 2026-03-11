@@ -60,10 +60,13 @@ function formatPrice(price: number): string {
 
 function MapBoundsUpdater({ properties }: { properties: Property[] }) {
   const map = useMap();
-  const initialized = useRef(false);
+  const prevCount = useRef<number | null>(null);
   useEffect(() => {
-    if (initialized.current || properties.length === 0) return;
-    initialized.current = true;
+    if (properties.length === 0) return;
+    // Fit bounds on first load and whenever the property list changes (search/filter)
+    const count = properties.length;
+    if (prevCount.current === count) return;
+    prevCount.current = count;
     const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
   }, [properties, map]);
