@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
-  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', image: '', description: '',
+  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', images: '', description: '',
 };
 
 export default function Admin() {
@@ -32,7 +32,7 @@ export default function Admin() {
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
       lng: Number(form.lng),
-      image: form.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
+      images: form.images ? form.images.split(',').map(s => s.trim()) : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
     toast.success('Imóvel adicionado com sucesso!');
@@ -122,8 +122,8 @@ export default function Admin() {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">URL da Imagem</label>
-            <input className={inputClass} value={form.image} onChange={(e) => set('image', e.target.value)} placeholder="https://..." />
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">URLs das Imagens (separadas por vírgula)</label>
+            <input className={inputClass} value={form.images} onChange={(e) => set('images', e.target.value)} placeholder="https://img1.jpg, https://img2.jpg" />
           </div>
 
           <div>
