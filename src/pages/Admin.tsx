@@ -112,7 +112,7 @@ export default function Admin() {
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
       lng: Number(form.lng),
-      images: validImages.length > 0 ? validImages : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
+      images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
     setSubmitting(false);
