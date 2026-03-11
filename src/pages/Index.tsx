@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
+import logoImg from '@/assets/logo.png';
 import { PropertyType } from '@/data/properties';
 import { useProperties } from '@/hooks/useProperties';
 import PropertyMap from '@/components/PropertyMap';
