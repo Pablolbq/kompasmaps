@@ -113,24 +113,27 @@ const Index = () => {
             />
           </div>
 
-          {/* Bottom sheet */}
+          {/* Bottom sheet — uses transform for GPU-accelerated 60fps */}
           <div
-            className="absolute left-0 right-0 bottom-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border flex flex-col"
+            className="absolute left-0 right-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border flex flex-col will-change-transform"
             style={{
-              top: dragTop !== null
-                ? `${dragTop}px`
-                : sheetMode === 'full' ? '0px' : sheetMode === 'half' ? '50%' : 'calc(100% - 3rem)',
-              transition: dragTop !== null ? 'none' : 'top 0.3s ease-out',
+              top: 0,
+              height: '100%',
+              transform: dragTop !== null
+                ? `translateY(${dragTop}px)`
+                : sheetMode === 'full' ? 'translateY(0)' : sheetMode === 'half' ? 'translateY(50%)' : `translateY(calc(100% - 3rem))`,
+              transition: dragTop !== null ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
             }}
           >
             {/* Handle — drag to resize */}
             <div
               className="flex justify-center py-5 flex-shrink-0 cursor-grab touch-none"
               onTouchStart={(e: RTE<HTMLDivElement>) => {
-                const containerH = containerRef.current?.getBoundingClientRect();
                 const sheet = (e.currentTarget.parentElement as HTMLElement);
                 touchStartY.current = e.touches[0].clientY;
-                sheetStartTop.current = sheet.offsetTop;
+                // Get current translateY value
+                const matrix = new DOMMatrix(getComputedStyle(sheet).transform);
+                sheetStartTop.current = matrix.m42;
               }}
               onTouchMove={(e: RTE<HTMLDivElement>) => {
                 if (touchStartY.current === null || sheetStartTop.current === null || !containerRef.current) return;
@@ -148,7 +151,6 @@ const Index = () => {
                 }
                 const containerH = containerRef.current.clientHeight;
                 const ratio = dragTop / containerH;
-                // Snap to closest: full (<25%), half (25-75%), mini (>75%)
                 if (ratio < 0.25) setSheetMode('full');
                 else if (ratio < 0.75) setSheetMode('half');
                 else setSheetMode('mini');
