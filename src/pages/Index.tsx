@@ -204,12 +204,13 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Detail dialog for mobile */}
-        <PropertyDetailDialog
-          property={detailProp ?? null}
-          open={!!detailProperty}
-          onClose={() => setDetailProperty(null)}
-        />
+        {/* Full-page detail view for mobile */}
+        {detailProp && (
+          <PropertyDetailMobile
+            property={detailProp}
+            onBack={() => setDetailProperty(null)}
+          />
+        )}
       </div>
     );
   }
