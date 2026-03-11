@@ -51,11 +51,23 @@ function NumberInput({ label, value, onChange, placeholder }: { label: string; v
 export default function PropertyFilters({ activeTypes, onToggleType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
   const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const allSelected = activeTypes.length === types.length;
+  const [showHint, setShowHint] = useState(true);
+
+  // Hide hint once user interacts with filters
+  useEffect(() => {
+    if (!allSelected) setShowHint(false);
+  }, [allSelected]);
 
   const hasAdvanced = Object.values(advancedFilters).some((v) => v !== null);
 
   return (
     <div className="space-y-3">
+      {showHint && (
+        <p className="text-[11px] text-muted-foreground/70 italic">
+          Selecione um tipo para filtrar os imóveis
+        </p>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-lg text-foreground tracking-tight">Filtros</h2>
         <span className="text-xs text-muted-foreground font-medium">
