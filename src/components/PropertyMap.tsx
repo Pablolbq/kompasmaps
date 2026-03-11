@@ -45,7 +45,7 @@ function createCustomIcon(type: string, isSelected: boolean, hasSelection: boole
         filter: ${filter};
         transition: all 0.25s;
       ">
-        <span style="transform: rotate(45deg); font-size: 16px;">${typeIcons[type]}</span>
+        <span style="transform: rotate(45deg); display:flex; align-items:center; justify-content:center;">${typeSvgIcons[type]}</span>
       </div>
     `,
     iconSize: [size, size],
