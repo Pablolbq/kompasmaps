@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
-  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', description: '',
+  garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
 };
 
 type DbProperty = Property & { archived: boolean };
@@ -135,6 +135,7 @@ export default function Admin() {
       garageSpaces: p.garageSpaces != null ? String(p.garageSpaces) : '',
       address: p.address,
       neighborhood: p.neighborhood,
+      cep: (p as any).cep ?? '',
       lat: String(p.lat),
       lng: String(p.lng),
       description: p.description,
@@ -160,6 +161,7 @@ export default function Admin() {
       garage_spaces: form.garageSpaces ? Number(form.garageSpaces) : null,
       address: form.address,
       neighborhood: form.neighborhood,
+      cep: form.cep,
       lat: Number(form.lat),
       lng: Number(form.lng),
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
@@ -381,9 +383,15 @@ export default function Admin() {
               <input className={inputClass} value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="Rua Santos Dumont, 450" />
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
-              <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
+                <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>
+                <input className={inputClass} value={form.cep} onChange={(e) => set('cep', e.target.value)} placeholder="84015-000" maxLength={9} />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
