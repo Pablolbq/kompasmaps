@@ -81,7 +81,7 @@ const Index = () => {
             <span className="font-semibold text-sm text-foreground tracking-tight">Kompas</span>
           </div>
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Buscar..."
