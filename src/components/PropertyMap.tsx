@@ -19,14 +19,14 @@ const typeIcons: Record<string, string> = {
   comercial: '🏪',
 };
 
-function createCustomIcon(type: string, isSelected: boolean) {
+function createCustomIcon(type: string, isSelected: boolean, hasSelection: boolean) {
   const color = typeColors[type] || '#1a9a8a';
-  const size = isSelected ? 44 : 36;
-  const border = isSelected ? '4px solid #facc15' : '3px solid white';
-  const shadow = isSelected
-    ? '0 0 0 3px rgba(250,204,21,0.4), 0 4px 12px rgba(0,0,0,0.35)'
-    : '0 4px 12px rgba(0,0,0,0.25)';
-  const zExtra = isSelected ? 'z-index:9999;' : '';
+  const dimmed = hasSelection && !isSelected;
+  const size = 36;
+  const opacity = dimmed ? '0.35' : '1';
+  const filter = dimmed ? 'grayscale(80%)' : 'none';
+  const border = '3px solid white';
+  const shadow = '0 4px 12px rgba(0,0,0,0.25)';
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -41,10 +41,11 @@ function createCustomIcon(type: string, isSelected: boolean) {
         justify-content: center;
         box-shadow: ${shadow};
         border: ${border};
-        ${zExtra}
-        transition: all 0.2s;
+        opacity: ${opacity};
+        filter: ${filter};
+        transition: all 0.25s;
       ">
-        <span style="transform: rotate(45deg); font-size: ${isSelected ? 20 : 16}px;">${typeIcons[type]}</span>
+        <span style="transform: rotate(45deg); font-size: 16px;">${typeIcons[type]}</span>
       </div>
     `,
     iconSize: [size, size],
@@ -91,11 +92,12 @@ export default function PropertyMap({ properties, selectedId, onSelect, isMobile
       <MapBoundsUpdater properties={properties} />
       {properties.map((property) => {
         const isSelected = selectedId === property.id;
+        const hasSelection = !!selectedId;
         return (
           <Marker
             key={property.id}
             position={[property.lat, property.lng]}
-            icon={createCustomIcon(property.type, isSelected)}
+            icon={createCustomIcon(property.type, isSelected, hasSelection)}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect(property.id) }}
           >
