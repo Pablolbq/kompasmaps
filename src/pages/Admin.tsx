@@ -1,18 +1,70 @@
 import { useState } from 'react';
 import { addProperty, PropertyType, propertyTypeLabels } from '@/data/properties';
-import { MapPin, Plus, ArrowLeft } from 'lucide-react';
+import { MapPin, Plus, ArrowLeft, Trash2, ImagePlus, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'imovelmap2024';
+
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
-  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', images: '', description: '',
+  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', description: '',
 };
 
 export default function Admin() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [form, setForm] = useState(defaultForm);
+  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+
+  const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+      setAuthenticated(true);
+    } else {
+      toast.error('Usuário ou senha incorretos.');
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 bg-card p-6 rounded-2xl border border-border shadow-lg">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <Lock size={20} className="text-primary-foreground" />
+            </div>
+          </div>
+          <h1 className="text-lg font-bold text-foreground text-center">Área Administrativa</h1>
+          <p className="text-xs text-muted-foreground text-center">Faça login para continuar</p>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Usuário</label>
+            <input className={inputClass} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuário" autoComplete="username" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Senha</label>
+            <input type="password" className={inputClass} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" autoComplete="current-password" />
+          </div>
+          <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+            Entrar
+          </button>
+          <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-foreground transition-colors mt-2">
+            ← Voltar ao mapa
+          </Link>
+        </form>
+      </div>
+    );
+  }
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const addImageField = () => setImageUrls((prev) => [...prev, '']);
+  const removeImageField = (index: number) => setImageUrls((prev) => prev.filter((_, i) => i !== index));
+  const updateImageField = (index: number, value: string) => setImageUrls((prev) => prev.map((v, i) => i === index ? value : v));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +72,7 @@ export default function Admin() {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
+    const validImages = imageUrls.map(s => s.trim()).filter(Boolean);
     addProperty({
       title: form.title,
       type: form.type,
@@ -32,14 +85,13 @@ export default function Admin() {
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
       lng: Number(form.lng),
-      images: form.images ? form.images.split(',').map(s => s.trim()) : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
+      images: validImages.length > 0 ? validImages : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
     toast.success('Imóvel adicionado com sucesso!');
     setForm(defaultForm);
+    setImageUrls(['']);
   };
-
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,9 +173,41 @@ export default function Admin() {
             </div>
           </div>
 
+          {/* Photo URLs */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">URLs das Imagens (separadas por vírgula)</label>
-            <input className={inputClass} value={form.images} onChange={(e) => set('images', e.target.value)} placeholder="https://img1.jpg, https://img2.jpg" />
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">Fotos</label>
+            <div className="space-y-2">
+              {imageUrls.map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className={`${inputClass} flex-1`}
+                    value={url}
+                    onChange={(e) => updateImageField(i, e.target.value)}
+                    placeholder={`URL da foto ${i + 1}`}
+                  />
+                  {imageUrls.length > 1 && (
+                    <button type="button" onClick={() => removeImageField(i)} className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {/* Preview thumbnails */}
+              {imageUrls.some(u => u.trim()) && (
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {imageUrls.filter(u => u.trim()).map((url, i) => (
+                    <img key={i} src={url.trim()} alt={`Preview ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={addImageField}
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                <ImagePlus size={14} /> Adicionar mais uma foto
+              </button>
+            </div>
           </div>
 
           <div>

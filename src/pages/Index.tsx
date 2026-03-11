@@ -4,6 +4,7 @@ import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
+import PropertyDetailMobile from '@/components/PropertyDetailMobile';
 import { MapPin, Search, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -203,12 +204,13 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Detail dialog for mobile */}
-        <PropertyDetailDialog
-          property={detailProp ?? null}
-          open={!!detailProperty}
-          onClose={() => setDetailProperty(null)}
-        />
+        {/* Full-page detail view for mobile */}
+        {detailProp && (
+          <PropertyDetailMobile
+            property={detailProp}
+            onBack={() => setDetailProperty(null)}
+          />
+        )}
       </div>
     );
   }
@@ -281,6 +283,7 @@ const Index = () => {
             selectedId={selectedId}
             onSelect={handleSelect}
             onDeselect={() => setSelectedId(null)}
+            onExpand={(id) => setDetailProperty(id)}
           />
         </main>
       </div>
