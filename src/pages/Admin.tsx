@@ -38,8 +38,38 @@ function LocationPicker({ lat, lng, onChange }: { lat: number; lng: number; onCh
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
-    map.setView([lat, lng], map.getZoom());
+    map.setView([lat, lng], 15);
   }, [lat, lng, map]);
+  return null;
+}
+
+// Geocode an address string using Nominatim
+async function geocodeAddress(query: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+    const data = await res.json();
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    }
+  } catch {}
+  return null;
+}
+
+// Lookup address from CEP using ViaCEP
+async function lookupCep(cep: string): Promise<{ address: string; neighborhood: string; city: string; state: string } | null> {
+  const clean = cep.replace(/\D/g, '');
+  if (clean.length !== 8) return null;
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+    const data = await res.json();
+    if (data.erro) return null;
+    return {
+      address: data.logradouro || '',
+      neighborhood: data.bairro || '',
+      city: data.localidade || '',
+      state: data.uf || '',
+    };
+  } catch {}
   return null;
 }
 
