@@ -92,11 +92,12 @@ export default function PropertyMap({ properties, selectedId, onSelect, isMobile
       <MapBoundsUpdater properties={properties} />
       {properties.map((property) => {
         const isSelected = selectedId === property.id;
+        const hasSelection = !!selectedId;
         return (
           <Marker
             key={property.id}
             position={[property.lat, property.lng]}
-            icon={createCustomIcon(property.type, isSelected)}
+            icon={createCustomIcon(property.type, isSelected, hasSelection)}
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect(property.id) }}
           >
