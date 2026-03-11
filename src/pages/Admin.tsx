@@ -99,7 +99,7 @@ export default function Admin() {
       return;
     }
     setSubmitting(true);
-    const validImages = imageUrls.map(s => s.trim()).filter(Boolean);
+    const { error } = await supabase.from('properties').insert({
     const { error } = await supabase.from('properties').insert({
       title: form.title,
       type: form.type,
