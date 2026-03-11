@@ -226,7 +226,7 @@ const Index = () => {
           <img src={logoImg} alt="Kompas" className="h-8 w-auto" />
         </div>
         <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Buscar bairro, rua..."
