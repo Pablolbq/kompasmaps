@@ -60,11 +60,11 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
       {/* Expand / Collapse */}
       <div className="px-3.5 pb-2">
         <button
-          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          onClick={(e) => { e.stopPropagation(); onExpand ? onExpand() : setExpanded(!expanded); }}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          {expanded ? 'Menos detalhes' : 'Mais detalhes'}
+          {!onExpand && expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {!onExpand ? (expanded ? 'Menos detalhes' : 'Mais detalhes') : 'Ver detalhes'}
         </button>
       </div>
 
