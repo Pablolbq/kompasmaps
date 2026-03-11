@@ -439,23 +439,49 @@ export default function Admin() {
             </div>
 
             <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>
+              <input
+                className={inputClass}
+                value={form.cep}
+                onChange={async (e) => {
+                  const val = e.target.value;
+                  set('cep', val);
+                  const clean = val.replace(/\D/g, '');
+                  if (clean.length === 8) {
+                    const result = await lookupCep(clean);
+                    if (result) {
+                      setForm(prev => ({
+                        ...prev,
+                        address: result.address || prev.address,
+                        neighborhood: result.neighborhood || prev.neighborhood,
+                      }));
+                      // Geocode the full address
+                      const query = `${result.address}, ${result.neighborhood}, ${result.city}, ${result.state}, Brazil`;
+                      const coords = await geocodeAddress(query);
+                      if (coords) {
+                        setForm(prev => ({ ...prev, lat: String(coords.lat), lng: String(coords.lng) }));
+                      }
+                      toast.success('Endereço preenchido pelo CEP!');
+                    }
+                  }
+                }}
+                placeholder="84015-000"
+                maxLength={9}
+              />
+            </div>
+
+            <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Endereço *</label>
               <input className={inputClass} value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="Rua Santos Dumont, 450" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
-                <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>
-                <input className={inputClass} value={form.cep} onChange={(e) => set('cep', e.target.value)} placeholder="84015-000" maxLength={9} />
-              </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
+              <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Localização no Mapa <span className="text-muted-foreground/60">(opcional — clique para ajustar o pin)</span></label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Localização no Mapa <span className="text-muted-foreground/60">(clique para ajustar o pin)</span></label>
               <div className="h-48 rounded-lg overflow-hidden border border-border mt-1">
                 <MapContainer
                   center={[form.lat ? Number(form.lat) : DEFAULT_LAT, form.lng ? Number(form.lng) : DEFAULT_LNG]}
