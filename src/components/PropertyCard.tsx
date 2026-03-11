@@ -1,6 +1,7 @@
 import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
 import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
+import ImageCarousel from './ImageCarousel';
 
 const typeColors: Record<string, string> = {
   casa: 'bg-badge-casa/10 text-badge-casa',
@@ -19,11 +20,12 @@ interface PropertyCardProps {
   onClick: () => void;
 }
 
-export default function PropertyCard({ property, isSelected, onClick }: PropertyCardProps) {
+const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick }, ref) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div
+      ref={ref}
       className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group hover:shadow-lg ${
         isSelected
           ? 'border-primary shadow-lg ring-2 ring-primary/20'
@@ -31,18 +33,13 @@ export default function PropertyCard({ property, isSelected, onClick }: Property
       }`}
     >
       <button onClick={onClick} className="w-full text-left">
-        <div className="relative overflow-hidden">
-          <img
-            src={property.image}
-            alt={property.title}
-            className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-          <span className={`absolute top-2.5 left-2.5 text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
+        <ImageCarousel images={property.images} alt={property.title} className="w-full h-36" />
+        <div className="relative -mt-6 ml-2.5">
+          <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
             {propertyTypeLabels[property.type]}
           </span>
         </div>
-        <div className="p-3.5">
+        <div className="p-3.5 pt-1.5">
           <h3 className="font-semibold text-sm text-card-foreground leading-tight line-clamp-1">
             {property.title}
           </h3>
@@ -90,4 +87,8 @@ export default function PropertyCard({ property, isSelected, onClick }: Property
       )}
     </div>
   );
-}
+});
+
+PropertyCard.displayName = 'PropertyCard';
+
+export default PropertyCard;

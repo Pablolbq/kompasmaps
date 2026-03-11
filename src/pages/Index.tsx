@@ -1,16 +1,19 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { properties, PropertyType } from '@/data/properties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
-import { MapPin, Search, Map, List } from 'lucide-react';
+import { MapPin, Search, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
+  const isMobile = useIsMobile();
   const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa', 'apartamento', 'terreno', 'comercial']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
-  const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
+
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -39,6 +42,104 @@ const Index = () => {
     );
   }, []);
 
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    // Scroll the card into view in the sidebar
+    setTimeout(() => {
+      cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }, []);
+
+  const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
+
+  // ─── MOBILE LAYOUT ────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="h-[100dvh] flex flex-col bg-background">
+        {/* Header */}
+        <header className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <MapPin size={14} className="text-primary-foreground" />
+            </div>
+            <h1 className="font-bold text-sm text-foreground">ImovelMap</h1>
+          </div>
+          <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-36 transition-all"
+            />
+          </div>
+        </header>
+
+        {/* Filters */}
+        <div className="px-3 py-2 border-b border-border bg-card flex-shrink-0">
+          <PropertyFilters
+            activeTypes={activeTypes}
+            onToggleType={toggleType}
+            total={filteredProperties.length}
+            advancedFilters={advancedFilters}
+            onAdvancedFiltersChange={setAdvancedFilters}
+          />
+        </div>
+
+        {/* Split view: Map top, selected card or list bottom */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Map - always visible, takes half */}
+          <div className="h-1/2 flex-shrink-0 relative">
+            <PropertyMap
+              properties={filteredProperties}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+            />
+          </div>
+
+          {/* Bottom half: selected card or scrollable list */}
+          <div className="h-1/2 flex-shrink-0 overflow-y-auto border-t border-border bg-card">
+            {selectedProperty ? (
+              <div className="p-3">
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="mb-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X size={14} /> Voltar à lista
+                </button>
+                <PropertyCard
+                  property={selectedProperty}
+                  isSelected={true}
+                  onClick={() => {}}
+                />
+              </div>
+            ) : (
+              <div className="p-3 space-y-3">
+                {filteredProperties.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MapPin size={28} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
+                  </div>
+                ) : (
+                  filteredProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      isSelected={selectedId === property.id}
+                      onClick={() => handleSelect(property.id)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── DESKTOP LAYOUT ────────────────────────────────────
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
@@ -49,7 +150,7 @@ const Index = () => {
           </div>
           <div>
             <h1 className="font-bold text-base text-foreground leading-tight">ImovelMap</h1>
-            <p className="text-[11px] text-muted-foreground hidden sm:block">Ponta Grossa, PR</p>
+            <p className="text-[11px] text-muted-foreground">Ponta Grossa, PR</p>
           </div>
         </div>
         <div className="relative">
@@ -59,35 +160,15 @@ const Index = () => {
             placeholder="Buscar bairro, rua..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-40 sm:w-56 transition-all"
+            className="pl-9 pr-4 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-56 transition-all"
           />
         </div>
       </header>
 
-      {/* Mobile toggle */}
-      <div className="md:hidden flex border-b border-border bg-card">
-        <button
-          onClick={() => setMobileView('list')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors ${
-            mobileView === 'list' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'
-          }`}
-        >
-          <List size={16} /> Imóveis
-        </button>
-        <button
-          onClick={() => setMobileView('map')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors ${
-            mobileView === 'map' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'
-          }`}
-        >
-          <Map size={16} /> Mapa
-        </button>
-      </div>
-
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - hidden on mobile when map is showing */}
-        <aside className={`${mobileView === 'map' ? 'hidden' : 'flex'} md:flex w-full md:w-[340px] flex-shrink-0 md:border-r border-border flex-col bg-card`}>
+        {/* Sidebar */}
+        <aside className="flex w-[340px] flex-shrink-0 border-r border-border flex-col bg-card">
           <div className="p-4 border-b border-border">
             <PropertyFilters
               activeTypes={activeTypes}
@@ -108,21 +189,22 @@ const Index = () => {
               filteredProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
+                  ref={(el) => { cardRefs.current[property.id] = el; }}
                   property={property}
                   isSelected={selectedId === property.id}
-                  onClick={() => setSelectedId(property.id)}
+                  onClick={() => handleSelect(property.id)}
                 />
               ))
             )}
           </div>
         </aside>
 
-        {/* Map - hidden on mobile when list is showing */}
-        <main className={`${mobileView === 'list' ? 'hidden' : 'flex'} md:flex flex-1 relative`}>
+        {/* Map */}
+        <main className="flex flex-1 relative">
           <PropertyMap
             properties={filteredProperties}
             selectedId={selectedId}
-            onSelect={setSelectedId}
+            onSelect={handleSelect}
           />
         </main>
       </div>

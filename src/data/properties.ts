@@ -13,8 +13,13 @@ export interface Property {
   neighborhood: string;
   lat: number;
   lng: number;
-  image: string;
+  images: string[];
   description: string;
+}
+
+/** Backward compat helper */
+export function getPropertyImage(property: Property): string {
+  return property.images[0] ?? '/placeholder.svg';
 }
 
 export const propertyTypeLabels: Record<PropertyType, string> = {
@@ -48,7 +53,11 @@ let _properties: Property[] = [
     neighborhood: 'Jardim Carvalho',
     lat: -25.0916,
     lng: -50.1570,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+    ],
     description: 'Casa espaçosa com acabamento moderno, quintal amplo e garagem para 2 carros. Piso porcelanato em todos os ambientes, cozinha planejada e área gourmet completa.',
   },
   {
@@ -64,7 +73,10 @@ let _properties: Property[] = [
     neighborhood: 'Centro',
     lat: -25.0945,
     lng: -50.1633,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+    ],
     description: 'Apartamento bem localizado, próximo ao comércio e transporte público. Condomínio com portaria 24h, salão de festas e academia.',
   },
   {
@@ -77,7 +89,10 @@ let _properties: Property[] = [
     neighborhood: 'Uvaranas',
     lat: -25.0780,
     lng: -50.1480,
-    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
+    ],
     description: 'Terreno plano em área residencial, pronto para construir. Documentação em dia. Rua asfaltada com rede de água e esgoto.',
   },
   {
@@ -93,7 +108,12 @@ let _properties: Property[] = [
     neighborhood: 'Estrela',
     lat: -25.0850,
     lng: -50.1720,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+    ],
     description: 'Linda casa com piscina, churrasqueira e ampla área de lazer. Suite master com closet, lavabo e jardim paisagístico.',
   },
   {
@@ -109,7 +129,10 @@ let _properties: Property[] = [
     neighborhood: 'Oficinas',
     lat: -25.1050,
     lng: -50.1550,
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop',
+    ],
     description: 'Apartamento compacto e funcional, ideal para jovens casais. Próximo à UEPG com fácil acesso ao centro.',
   },
   {
@@ -122,7 +145,10 @@ let _properties: Property[] = [
     neighborhood: 'Boa Vista',
     lat: -25.0700,
     lng: -50.1600,
-    image: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=400&fit=crop',
+    ],
     description: 'Excelente terreno em bairro nobre, frente para rua asfaltada. Ideal para construção de residência de alto padrão.',
   },
   {
@@ -138,7 +164,10 @@ let _properties: Property[] = [
     neighborhood: 'Nova Rússia',
     lat: -25.0990,
     lng: -50.1700,
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+    ],
     description: 'Casa térrea com projeto moderno, varanda gourmet e jardim. Acabamento de primeira e quintal amplo.',
   },
   {
@@ -154,7 +183,11 @@ let _properties: Property[] = [
     neighborhood: 'Centro',
     lat: -25.0930,
     lng: -50.1610,
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+    ],
     description: 'Cobertura duplex com vista panorâmica da cidade, terraço com churrasqueira. Acabamento premium e localização privilegiada.',
   },
   {
@@ -169,7 +202,10 @@ let _properties: Property[] = [
     neighborhood: 'Centro',
     lat: -25.0940,
     lng: -50.1645,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&h=400&fit=crop',
+    ],
     description: 'Sala comercial em prédio empresarial moderno. Recepção, ar condicionado central e estacionamento rotativo.',
   },
 ];

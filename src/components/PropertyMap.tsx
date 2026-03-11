@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
+import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage } from '@/data/properties';
 import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -87,7 +87,7 @@ export default function PropertyMap({ properties, selectedId, onSelect }: Proper
         >
           <Popup>
             <div className="p-3 min-w-[220px]">
-              <img src={property.image} alt={property.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+              <img src={getPropertyImage(property)} alt={property.title} className="w-full h-28 object-cover rounded-lg mb-2" />
               <span
                 className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
                 style={{ background: typeColors[property.type] + '18', color: typeColors[property.type] }}
