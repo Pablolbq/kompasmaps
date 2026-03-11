@@ -3,7 +3,8 @@ import { PropertyType, propertyTypeLabels, mapDbProperty, Property } from '@/dat
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
-import { MapPin, Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search } from 'lucide-react';
+import { Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search } from 'lucide-react';
+import logoIcon from '@/assets/logo-icon.png';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
