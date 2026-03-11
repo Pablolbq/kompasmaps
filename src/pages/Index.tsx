@@ -1,8 +1,9 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { properties, PropertyType } from '@/data/properties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
+import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import { MapPin, Search, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -12,6 +13,7 @@ const Index = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
+  const [detailProperty, setDetailProperty] = useState<string | null>(null);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -44,13 +46,15 @@ const Index = () => {
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
-    // Scroll the card into view in the sidebar
-    setTimeout(() => {
-      cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
-  }, []);
+    if (!isMobile) {
+      setTimeout(() => {
+        cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [isMobile]);
 
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
+  const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
   // ─── MOBILE LAYOUT ────────────────────────────────────
   if (isMobile) {
@@ -95,6 +99,7 @@ const Index = () => {
               properties={filteredProperties}
               selectedId={selectedId}
               onSelect={handleSelect}
+              isMobile
             />
           </div>
 
@@ -193,6 +198,7 @@ const Index = () => {
                   property={property}
                   isSelected={selectedId === property.id}
                   onClick={() => handleSelect(property.id)}
+                  onExpand={() => setDetailProperty(property.id)}
                 />
               ))
             )}
@@ -208,6 +214,13 @@ const Index = () => {
           />
         </main>
       </div>
+
+      {/* Detail dialog */}
+      <PropertyDetailDialog
+        property={detailProp ?? null}
+        open={!!detailProperty}
+        onClose={() => setDetailProperty(null)}
+      />
     </div>
   );
 };
