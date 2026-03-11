@@ -32,7 +32,7 @@ export default function Admin() {
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
       lng: Number(form.lng),
-      image: form.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
+      images: form.images ? form.images.split(',').map(s => s.trim()) : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
     toast.success('Imóvel adicionado com sucesso!');
