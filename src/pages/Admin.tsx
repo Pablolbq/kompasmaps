@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { PropertyType, propertyTypeLabels } from '@/data/properties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MapPin, Plus, ArrowLeft, Trash2, ImagePlus, Lock, LogOut, Loader2 } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
+import { MapPin, Plus, ArrowLeft, Lock, LogOut, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
