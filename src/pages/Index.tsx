@@ -14,6 +14,9 @@ const Index = () => {
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
   const [detailProperty, setDetailProperty] = useState<string | null>(null);
+  // Mobile bottom sheet: 'half' (50/50), 'full' (list covers map), 'mini' (map full, small handle)
+  const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
+  const touchStartY = useRef<number | null>(null);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
