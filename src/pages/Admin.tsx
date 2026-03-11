@@ -424,15 +424,38 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Latitude *</label>
-                <input type="number" step="any" className={inputClass} value={form.lat} onChange={(e) => set('lat', e.target.value)} placeholder="-25.0916" />
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Localização no Mapa <span className="text-muted-foreground/60">(opcional — clique para ajustar o pin)</span></label>
+              <div className="h-48 rounded-lg overflow-hidden border border-border mt-1">
+                <MapContainer
+                  center={[form.lat ? Number(form.lat) : DEFAULT_LAT, form.lng ? Number(form.lng) : DEFAULT_LNG]}
+                  zoom={14}
+                  className="h-full w-full"
+                  zoomControl={true}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationPicker
+                    lat={form.lat ? Number(form.lat) : DEFAULT_LAT}
+                    lng={form.lng ? Number(form.lng) : DEFAULT_LNG}
+                    onChange={(lat, lng) => {
+                      set('lat', String(lat));
+                      set('lng', String(lng));
+                    }}
+                  />
+                  <RecenterMap
+                    lat={form.lat ? Number(form.lat) : DEFAULT_LAT}
+                    lng={form.lng ? Number(form.lng) : DEFAULT_LNG}
+                  />
+                </MapContainer>
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Longitude *</label>
-                <input type="number" step="any" className={inputClass} value={form.lng} onChange={(e) => set('lng', e.target.value)} placeholder="-50.1570" />
-              </div>
+              {form.lat && form.lng && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  📍 {Number(form.lat).toFixed(6)}, {Number(form.lng).toFixed(6)}
+                </p>
+              )}
             </div>
 
             <div>
