@@ -3,6 +3,8 @@ import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, Chevro
 import { useState, forwardRef } from 'react';
 import ImageCarousel from './ImageCarousel';
 
+const SW = 1.5;
+
 const typeColors: Record<string, string> = {
   casa: 'bg-badge-casa/10 text-badge-casa',
   apartamento: 'bg-badge-apartamento/10 text-badge-apartamento',
@@ -45,13 +47,13 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
             {property.title}
           </h3>
           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-            <MapPin size={12} /> {property.neighborhood}
+            <MapPin size={12} strokeWidth={SW} /> {property.neighborhood}
           </p>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1"><Ruler size={12} /> {property.area}m²</span>
-            {property.bedrooms != null && <span className="flex items-center gap-1"><BedDouble size={12} /> {property.bedrooms}</span>}
-            {property.bathrooms != null && <span className="flex items-center gap-1"><Bath size={12} /> {property.bathrooms}</span>}
-            {property.garageSpaces != null && <span className="flex items-center gap-1"><Car size={12} /> {property.garageSpaces}</span>}
+            <span className="flex items-center gap-1"><Ruler size={12} strokeWidth={SW} /> {property.area}m²</span>
+            {property.bedrooms != null && <span className="flex items-center gap-1"><BedDouble size={12} strokeWidth={SW} /> {property.bedrooms}</span>}
+            {property.bathrooms != null && <span className="flex items-center gap-1"><Bath size={12} strokeWidth={SW} /> {property.bathrooms}</span>}
+            {property.garageSpaces != null && <span className="flex items-center gap-1"><Car size={12} strokeWidth={SW} /> {property.garageSpaces}</span>}
           </div>
           <p className="font-bold text-primary mt-2.5 text-lg">{formatPrice(property.price)}</p>
         </div>
@@ -63,7 +65,7 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
           onClick={(e) => { e.stopPropagation(); onExpand ? onExpand() : setExpanded(!expanded); }}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          {!onExpand && expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {!onExpand && expanded ? <ChevronUp size={14} strokeWidth={SW} /> : <ChevronDown size={14} strokeWidth={SW} />}
           {!onExpand ? (expanded ? 'Menos detalhes' : 'Mais detalhes') : 'Ver detalhes'}
         </button>
       </div>
@@ -71,7 +73,7 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
       {!onExpand && expanded && (
         <div className="px-3.5 pb-3.5 space-y-2 animate-accordion-down">
           <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <MapPin size={11} /> {property.address}
+            <MapPin size={11} strokeWidth={SW} /> {property.address}
           </p>
           <p className="text-xs text-foreground/80 leading-relaxed">{property.description}</p>
           <a
@@ -79,9 +81,9 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md hover:shadow-lg"
+            className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg"
           >
-            <MessageCircle size={14} />
+            <MessageCircle size={14} strokeWidth={SW} />
             Falar no WhatsApp
           </a>
         </div>

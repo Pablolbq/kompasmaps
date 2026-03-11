@@ -2,11 +2,13 @@ import { PropertyType, propertyTypeLabels } from '@/data/properties';
 import { Home, Building2, LandPlot, Store, SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
 
+const SW = 1.5;
+
 const typeIcons: Record<PropertyType, React.ReactNode> = {
-  casa: <Home size={16} />,
-  apartamento: <Building2 size={16} />,
-  terreno: <LandPlot size={16} />,
-  comercial: <Store size={16} />,
+  casa: <Home size={16} strokeWidth={SW} />,
+  apartamento: <Building2 size={16} strokeWidth={SW} />,
+  terreno: <LandPlot size={16} strokeWidth={SW} />,
+  comercial: <Store size={16} strokeWidth={SW} />,
 };
 
 export interface AdvancedFilters {
@@ -55,7 +57,7 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-lg text-foreground">Filtros</h2>
+        <h2 className="font-semibold text-lg text-foreground tracking-tight">Filtros</h2>
         <span className="text-xs text-muted-foreground font-medium">
           {total} {total === 1 ? 'imóvel' : 'imóveis'}
         </span>
@@ -85,14 +87,14 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
         onClick={() => setShowAdvanced(!showAdvanced)}
         className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
       >
-        <SlidersHorizontal size={14} />
+        <SlidersHorizontal size={14} strokeWidth={SW} />
         Busca avançada
         {hasAdvanced && (
           <span
             onClick={(e) => { e.stopPropagation(); onAdvancedFiltersChange(emptyAdvancedFilters); }}
             className="ml-1 hover:text-destructive"
           >
-            <X size={12} />
+            <X size={12} strokeWidth={SW} />
           </span>
         )}
       </button>
