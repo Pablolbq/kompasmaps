@@ -18,9 +18,10 @@ interface PropertyCardProps {
   property: Property;
   isSelected: boolean;
   onClick: () => void;
+  onExpand?: () => void;
 }
 
-const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick }, ref) => {
+const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick, onExpand }, ref) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
