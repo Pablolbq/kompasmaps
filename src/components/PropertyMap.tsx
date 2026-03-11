@@ -90,7 +90,7 @@ function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   return null;
 }
 
-export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, isMobile = false }: PropertyMapProps) {
+export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, onExpand, isMobile = false }: PropertyMapProps) {
   return (
     <MapContainer
       center={[-25.0945, -50.1633]}
