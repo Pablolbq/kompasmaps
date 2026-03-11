@@ -210,40 +210,10 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Photo URLs */}
+          {/* Photos */}
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">Fotos</label>
-            <div className="space-y-2">
-              {imageUrls.map((url, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    className={`${inputClass} flex-1`}
-                    value={url}
-                    onChange={(e) => updateImageField(i, e.target.value)}
-                    placeholder={`URL da foto ${i + 1}`}
-                  />
-                  {imageUrls.length > 1 && (
-                    <button type="button" onClick={() => removeImageField(i)} className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {imageUrls.some(u => u.trim()) && (
-                <div className="flex gap-2 flex-wrap mt-2">
-                  {imageUrls.filter(u => u.trim()).map((url, i) => (
-                    <img key={i} src={url.trim()} alt={`Preview ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  ))}
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={addImageField}
-                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                <ImagePlus size={14} /> Adicionar mais uma foto
-              </button>
-            </div>
+            <ImageUploader images={imageUrls} onChange={setImageUrls} />
           </div>
 
           <div>
