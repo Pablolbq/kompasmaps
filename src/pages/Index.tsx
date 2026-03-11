@@ -170,7 +170,8 @@ const Index = () => {
                   <PropertyCard
                     property={selectedProperty}
                     isSelected={true}
-                    onClick={() => {}}
+                    onClick={() => setDetailProperty(selectedProperty.id)}
+                    onExpand={() => setDetailProperty(selectedProperty.id)}
                   />
                 </div>
               ) : (
