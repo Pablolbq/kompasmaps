@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
-import { properties, PropertyType } from '@/data/properties';
+import { PropertyType } from '@/data/properties';
+import { useProperties } from '@/hooks/useProperties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import PropertyDetailMobile from '@/components/PropertyDetailMobile';
-import { MapPin, Search, X } from 'lucide-react';
+import { MapPin, Search, X, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
