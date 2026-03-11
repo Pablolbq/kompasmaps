@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PropertyType, propertyTypeLabels, mapDbProperty, Property } from '@/data/properties';
+import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, mediaTypeLabels } from '@/data/properties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
+  mediaType: '' as string,
 };
 
 const DEFAULT_LAT = -25.0945;
@@ -199,6 +200,7 @@ export default function Admin() {
       lat: String(p.lat),
       lng: String(p.lng),
       description: p.description,
+      mediaType: p.mediaType ?? '',
     });
     setImageUrls(p.images);
     setView('form');
@@ -211,14 +213,15 @@ export default function Admin() {
       return;
     }
     setSubmitting(true);
+    const isMidia = form.type === 'midia';
     const payload = {
       title: form.title,
       type: form.type,
       price: Number(form.price),
       area: Number(form.area),
-      bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
-      bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-      garage_spaces: form.garageSpaces ? Number(form.garageSpaces) : null,
+      bedrooms: !isMidia && form.bedrooms ? Number(form.bedrooms) : null,
+      bathrooms: !isMidia && form.bathrooms ? Number(form.bathrooms) : null,
+      garage_spaces: !isMidia && form.garageSpaces ? Number(form.garageSpaces) : null,
       address: form.address,
       neighborhood: form.neighborhood,
       cep: form.cep,
@@ -226,6 +229,7 @@ export default function Admin() {
       lng: form.lng ? Number(form.lng) : DEFAULT_LNG,
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
+      media_type: isMidia && form.mediaType ? form.mediaType : null,
     };
 
     const { error } = editingId
@@ -406,11 +410,23 @@ export default function Admin() {
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo *</label>
               <select className={inputClass} value={form.type} onChange={(e) => set('type', e.target.value)}>
-                {(['casa', 'apartamento', 'terreno', 'comercial'] as PropertyType[]).map((t) => (
+                {(['casa', 'apartamento', 'terreno', 'comercial', 'midia'] as PropertyType[]).map((t) => (
                   <option key={t} value={t}>{propertyTypeLabels[t]}</option>
                 ))}
               </select>
             </div>
+
+            {form.type === 'midia' && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de Mídia</label>
+                <select className={inputClass} value={form.mediaType} onChange={(e) => set('mediaType', e.target.value)}>
+                  <option value="">Selecione...</option>
+                  {(['digital', 'estatica'] as MediaType[]).map((t) => (
+                    <option key={t} value={t}>{mediaTypeLabels[t]}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -423,20 +439,22 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Quartos</label>
-                <input type="number" className={inputClass} value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+            {form.type !== 'midia' && (
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Quartos</label>
+                  <input type="number" className={inputClass} value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Banheiros</label>
+                  <input type="number" className={inputClass} value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Vagas</label>
+                  <input type="number" className={inputClass} value={form.garageSpaces} onChange={(e) => set('garageSpaces', e.target.value)} />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Banheiros</label>
-                <input type="number" className={inputClass} value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Vagas</label>
-                <input type="number" className={inputClass} value={form.garageSpaces} onChange={(e) => set('garageSpaces', e.target.value)} />
-              </div>
-            </div>
+            )}
 
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>

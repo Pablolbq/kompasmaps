@@ -1,5 +1,5 @@
-import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ArrowLeft, Megaphone } from 'lucide-react';
 import ImageCarousel from './ImageCarousel';
 
 const SW = 1.5;
@@ -9,6 +9,7 @@ const typeColors: Record<string, string> = {
   apartamento: 'bg-badge-apartamento/10 text-badge-apartamento',
   terreno: 'bg-badge-terreno/10 text-badge-terreno',
   comercial: 'bg-badge-comercial/10 text-badge-comercial',
+  midia: 'bg-badge-midia/10 text-badge-midia',
 };
 
 function formatPrice(price: number): string {
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export default function PropertyDetailMobile({ property, onBack }: Props) {
+  const isMidia = property.type === 'midia';
+
   return (
     <div className="fixed inset-0 z-[2000] bg-background flex flex-col animate-in slide-in-from-right duration-200">
       <header className="flex items-center gap-3 px-3 py-3 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
@@ -51,9 +54,12 @@ export default function PropertyDetailMobile({ property, onBack }: Props) {
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1.5"><Ruler size={14} strokeWidth={SW} /> {property.area}m²</span>
-            {property.bedrooms != null && <span className="flex items-center gap-1.5"><BedDouble size={14} strokeWidth={SW} /> {property.bedrooms} quartos</span>}
-            {property.bathrooms != null && <span className="flex items-center gap-1.5"><Bath size={14} strokeWidth={SW} /> {property.bathrooms} banheiros</span>}
-            {property.garageSpaces != null && <span className="flex items-center gap-1.5"><Car size={14} strokeWidth={SW} /> {property.garageSpaces} vagas</span>}
+            {!isMidia && property.bedrooms != null && <span className="flex items-center gap-1.5"><BedDouble size={14} strokeWidth={SW} /> {property.bedrooms} quartos</span>}
+            {!isMidia && property.bathrooms != null && <span className="flex items-center gap-1.5"><Bath size={14} strokeWidth={SW} /> {property.bathrooms} banheiros</span>}
+            {!isMidia && property.garageSpaces != null && <span className="flex items-center gap-1.5"><Car size={14} strokeWidth={SW} /> {property.garageSpaces} vagas</span>}
+            {isMidia && property.mediaType && (
+              <span className="flex items-center gap-1.5"><Megaphone size={14} strokeWidth={SW} /> {mediaTypeLabels[property.mediaType]}</span>
+            )}
           </div>
 
           <p className="text-sm text-foreground/80 leading-relaxed">{property.description}</p>

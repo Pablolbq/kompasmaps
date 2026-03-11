@@ -22,6 +22,7 @@ export default {
         "badge-apartamento": "hsl(var(--badge-apartamento))",
         "badge-terreno": "hsl(var(--badge-terreno))",
         "badge-comercial": "hsl(var(--badge-comercial))",
+        "badge-midia": "hsl(var(--badge-midia))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

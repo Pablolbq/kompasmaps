@@ -29,6 +29,7 @@ export type Database = {
           images: string[]
           lat: number
           lng: number
+          media_type: string | null
           neighborhood: string
           price: number
           title: string
@@ -49,6 +50,7 @@ export type Database = {
           images?: string[]
           lat: number
           lng: number
+          media_type?: string | null
           neighborhood: string
           price: number
           title: string
@@ -69,6 +71,7 @@ export type Database = {
           images?: string[]
           lat?: number
           lng?: number
+          media_type?: string | null
           neighborhood?: string
           price?: number
           title?: string

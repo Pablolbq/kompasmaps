@@ -1,5 +1,5 @@
-import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp, Megaphone } from 'lucide-react';
 import { useState, forwardRef } from 'react';
 import ImageCarousel from './ImageCarousel';
 
@@ -10,6 +10,7 @@ const typeColors: Record<string, string> = {
   apartamento: 'bg-badge-apartamento/10 text-badge-apartamento',
   terreno: 'bg-badge-terreno/10 text-badge-terreno',
   comercial: 'bg-badge-comercial/10 text-badge-comercial',
+  midia: 'bg-badge-midia/10 text-badge-midia',
 };
 
 function formatPrice(price: number): string {
@@ -25,6 +26,7 @@ interface PropertyCardProps {
 
 const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick, onExpand }, ref) => {
   const [expanded, setExpanded] = useState(false);
+  const isMidia = property.type === 'midia';
 
   return (
     <div
@@ -51,15 +53,17 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
           </p>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1"><Ruler size={12} strokeWidth={SW} /> {property.area}m²</span>
-            {property.bedrooms != null && <span className="flex items-center gap-1"><BedDouble size={12} strokeWidth={SW} /> {property.bedrooms}</span>}
-            {property.bathrooms != null && <span className="flex items-center gap-1"><Bath size={12} strokeWidth={SW} /> {property.bathrooms}</span>}
-            {property.garageSpaces != null && <span className="flex items-center gap-1"><Car size={12} strokeWidth={SW} /> {property.garageSpaces}</span>}
+            {!isMidia && property.bedrooms != null && <span className="flex items-center gap-1"><BedDouble size={12} strokeWidth={SW} /> {property.bedrooms}</span>}
+            {!isMidia && property.bathrooms != null && <span className="flex items-center gap-1"><Bath size={12} strokeWidth={SW} /> {property.bathrooms}</span>}
+            {!isMidia && property.garageSpaces != null && <span className="flex items-center gap-1"><Car size={12} strokeWidth={SW} /> {property.garageSpaces}</span>}
+            {isMidia && property.mediaType && (
+              <span className="flex items-center gap-1"><Megaphone size={12} strokeWidth={SW} /> {mediaTypeLabels[property.mediaType]}</span>
+            )}
           </div>
           <p className="font-bold text-primary mt-2.5 text-lg">{formatPrice(property.price)}</p>
         </div>
       </button>
 
-      {/* Expand / Collapse */}
       <div className="px-3.5 pb-2">
         <button
           onClick={(e) => { e.stopPropagation(); onExpand ? onExpand() : setExpanded(!expanded); }}

@@ -1,5 +1,5 @@
 import { PropertyType, propertyTypeLabels } from '@/data/properties';
-import { Home, Building2, LandPlot, Store, SlidersHorizontal, X } from 'lucide-react';
+import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 
@@ -10,6 +10,7 @@ const typeIcons: Record<PropertyType, React.ReactNode> = {
   apartamento: <Building2 size={16} strokeWidth={SW} />,
   terreno: <LandPlot size={16} strokeWidth={SW} />,
   comercial: <Store size={16} strokeWidth={SW} />,
+  midia: <Megaphone size={16} strokeWidth={SW} />,
 };
 
 export interface AdvancedFilters {
@@ -107,14 +108,15 @@ const formatBRL = (v: number) => {
 };
 
 export default function PropertyFilters({ activeTypes, onToggleType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
-  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
+  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial', 'midia'];
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const allSelected = activeTypes.length === types.length;
   const [showHint, setShowHint] = useState(true);
 
+  const onlyMidia = activeTypes.length === 1 && activeTypes[0] === 'midia';
+
   useEffect(() => {
-    if (!allSelected) setShowHint(false);
-  }, [allSelected]);
+    if (activeTypes.length !== 1 || activeTypes[0] !== 'casa') setShowHint(false);
+  }, [activeTypes]);
 
   const hasAdvanced = Object.values(advancedFilters).some((v) => v !== null);
 
@@ -134,13 +136,16 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
       <div className="flex gap-2 flex-wrap">
         {types.map((type) => {
           const isActive = activeTypes.includes(type);
+          const isMidia = type === 'midia';
           return (
             <button
               key={type}
               onClick={() => onToggleType(type)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
+                  ? isMidia
+                    ? 'bg-badge-midia text-white shadow-md'
+                    : 'bg-primary text-primary-foreground shadow-md'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
@@ -151,70 +156,74 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
         })}
       </div>
 
-      {/* Advanced toggle */}
-      <button
-        onClick={() => setShowAdvanced(!showAdvanced)}
-        className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-      >
-        <SlidersHorizontal size={14} strokeWidth={SW} />
-        Busca avançada
-        {hasAdvanced && (
-          <span
-            onClick={(e) => { e.stopPropagation(); onAdvancedFiltersChange(emptyAdvancedFilters); }}
-            className="ml-1 hover:text-destructive"
+      {/* Advanced toggle — hidden when only mídia is selected */}
+      {!onlyMidia && (
+        <>
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            <X size={12} strokeWidth={SW} />
-          </span>
-        )}
-      </button>
+            <SlidersHorizontal size={14} strokeWidth={SW} />
+            Busca avançada
+            {hasAdvanced && (
+              <span
+                onClick={(e) => { e.stopPropagation(); onAdvancedFiltersChange(emptyAdvancedFilters); }}
+                className="ml-1 hover:text-destructive"
+              >
+                <X size={12} strokeWidth={SW} />
+              </span>
+            )}
+          </button>
 
-      {showAdvanced && (
-        <div className="grid grid-cols-2 gap-4 pt-1 animate-accordion-down">
-          <RangeSliderFilter
-            label="Preço"
-            valueMin={advancedFilters.priceMin}
-            valueMax={advancedFilters.priceMax}
-            onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })}
-            onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })}
-            min={0}
-            max={5000000}
-            step={50000}
-            formatValue={formatBRL}
-          />
-          <SliderFilter
-            label="Quartos mín"
-            value={advancedFilters.bedroomsMin}
-            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })}
-            min={0}
-            max={6}
-            step={1}
-          />
-          <SliderFilter
-            label="Banheiros mín"
-            value={advancedFilters.bathroomsMin}
-            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })}
-            min={0}
-            max={5}
-            step={1}
-          />
-          <SliderFilter
-            label="Vagas mín"
-            value={advancedFilters.garageMin}
-            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })}
-            min={0}
-            max={5}
-            step={1}
-          />
-          <SliderFilter
-            label="Área mín (m²)"
-            value={advancedFilters.areaMin}
-            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
-            min={0}
-            max={1000}
-            step={10}
-            formatValue={(v) => `${v} m²`}
-          />
-        </div>
+          {showAdvanced && (
+            <div className="grid grid-cols-2 gap-4 pt-1 animate-accordion-down">
+              <RangeSliderFilter
+                label="Preço"
+                valueMin={advancedFilters.priceMin}
+                valueMax={advancedFilters.priceMax}
+                onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })}
+                onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })}
+                min={0}
+                max={5000000}
+                step={50000}
+                formatValue={formatBRL}
+              />
+              <SliderFilter
+                label="Quartos mín"
+                value={advancedFilters.bedroomsMin}
+                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })}
+                min={0}
+                max={6}
+                step={1}
+              />
+              <SliderFilter
+                label="Banheiros mín"
+                value={advancedFilters.bathroomsMin}
+                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })}
+                min={0}
+                max={5}
+                step={1}
+              />
+              <SliderFilter
+                label="Vagas mín"
+                value={advancedFilters.garageMin}
+                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })}
+                min={0}
+                max={5}
+                step={1}
+              />
+              <SliderFilter
+                label="Área mín (m²)"
+                value={advancedFilters.areaMin}
+                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
+                min={0}
+                max={1000}
+                step={10}
+                formatValue={(v) => `${v} m²`}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
