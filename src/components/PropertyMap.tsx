@@ -125,7 +125,10 @@ export default function PropertyMap({ properties, selectedId, onSelect, onDesele
                   >
                     {propertyTypeLabels[property.type]}
                   </span>
-                  <h3 className="font-bold text-sm text-foreground leading-tight cursor-pointer hover:text-primary transition-colors" data-property-id={property.id}>{property.title}</h3>
+                  <h3
+                    className="font-bold text-sm text-foreground leading-tight cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => onExpand?.(property.id)}
+                  >{property.title}</h3>
                   <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                     <MapPin size={11} /> {property.neighborhood}
                   </p>
