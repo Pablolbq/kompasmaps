@@ -75,6 +75,7 @@ interface PropertyMapProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onDeselect?: () => void;
+  onExpand?: (id: string) => void;
   isMobile?: boolean;
 }
 
