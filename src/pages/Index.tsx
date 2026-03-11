@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const { data: properties = [], isLoading } = useProperties();
   const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa', 'apartamento', 'terreno', 'comercial']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
