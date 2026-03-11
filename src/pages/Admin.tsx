@@ -3,7 +3,8 @@ import { PropertyType, propertyTypeLabels, mapDbProperty, Property } from '@/dat
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
-import { MapPin, Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search } from 'lucide-react';
+import { Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search, MapPin } from 'lucide-react';
+import logoIcon from '@/assets/logo-icon.png';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -75,10 +76,8 @@ export default function Admin() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 bg-card p-6 rounded-2xl border border-border shadow-lg">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Lock size={20} className="text-primary-foreground" />
-            </div>
+           <div className="flex items-center justify-center gap-2 mb-2">
+            <img src={logoIcon} alt="Kompas" className="w-10 h-10 rounded-xl" />
           </div>
           <h1 className="text-lg font-bold text-foreground text-center">Área Administrativa</h1>
           <p className="text-xs text-muted-foreground text-center">Faça login para continuar</p>
@@ -222,11 +221,9 @@ export default function Admin() {
             </Link>
           )}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <MapPin size={18} className="text-primary-foreground" />
-            </div>
+            <img src={logoIcon} alt="Kompas" className="w-8 h-8 rounded-lg" />
             <div>
-              <h1 className="font-bold text-base text-foreground leading-tight">Admin</h1>
+              <h1 className="font-semibold text-base text-foreground leading-tight tracking-tight">Admin</h1>
               <p className="text-[11px] text-muted-foreground">
                 {view === 'form' ? (editingId ? 'Editar imóvel' : 'Novo imóvel') : 'Gerenciar imóveis'}
               </p>

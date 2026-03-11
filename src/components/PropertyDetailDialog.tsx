@@ -1,7 +1,9 @@
 import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, X } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle } from 'lucide-react';
 import ImageCarousel from './ImageCarousel';
+
+const SW = 1.5;
 
 const typeColors: Record<string, string> = {
   casa: 'bg-badge-casa/10 text-badge-casa',
@@ -27,7 +29,6 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
         <DialogTitle className="sr-only">{property.title}</DialogTitle>
-        {/* Large carousel */}
         <ImageCarousel images={property.images} alt={property.title} className="w-full h-72 md:h-80" />
 
         <div className="p-5 space-y-4">
@@ -38,17 +39,17 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
               </span>
               <h2 className="font-bold text-xl text-foreground mt-2 leading-tight">{property.title}</h2>
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-                <MapPin size={14} /> {property.address} — {property.neighborhood}
+                <MapPin size={14} strokeWidth={SW} /> {property.address} — {property.neighborhood}
               </p>
             </div>
             <p className="font-bold text-primary text-2xl whitespace-nowrap">{formatPrice(property.price)}</p>
           </div>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1.5"><Ruler size={14} /> {property.area}m²</span>
-            {property.bedrooms != null && <span className="flex items-center gap-1.5"><BedDouble size={14} /> {property.bedrooms} quartos</span>}
-            {property.bathrooms != null && <span className="flex items-center gap-1.5"><Bath size={14} /> {property.bathrooms} banheiros</span>}
-            {property.garageSpaces != null && <span className="flex items-center gap-1.5"><Car size={14} /> {property.garageSpaces} vagas</span>}
+            <span className="flex items-center gap-1.5"><Ruler size={14} strokeWidth={SW} /> {property.area}m²</span>
+            {property.bedrooms != null && <span className="flex items-center gap-1.5"><BedDouble size={14} strokeWidth={SW} /> {property.bedrooms} quartos</span>}
+            {property.bathrooms != null && <span className="flex items-center gap-1.5"><Bath size={14} strokeWidth={SW} /> {property.bathrooms} banheiros</span>}
+            {property.garageSpaces != null && <span className="flex items-center gap-1.5"><Car size={14} strokeWidth={SW} /> {property.garageSpaces} vagas</span>}
           </div>
 
           <p className="text-sm text-foreground/80 leading-relaxed">{property.description}</p>
@@ -57,9 +58,9 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
             href={getWhatsAppLink(property)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg transition-all"
           >
-            <MessageCircle size={16} />
+            <MessageCircle size={16} strokeWidth={SW} />
             Falar no WhatsApp
           </a>
         </div>

@@ -7,8 +7,9 @@ import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import PropertyDetailMobile from '@/components/PropertyDetailMobile';
-import { MapPin, Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, MapPin } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -76,13 +77,11 @@ const Index = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <MapPin size={14} className="text-primary-foreground" />
-            </div>
-            <h1 className="font-bold text-sm text-foreground">ImovelMap</h1>
+            <img src={logoIcon} alt="Kompas" className="w-7 h-7 rounded-lg" />
+            <span className="font-semibold text-sm text-foreground tracking-tight">Kompas</span>
           </div>
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Buscar..."
@@ -187,7 +186,7 @@ const Index = () => {
                 <div className="space-y-3">
                   {filteredProperties.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      <MapPin size={28} className="mx-auto mb-2 opacity-40" />
+                      <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                       <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
                     </div>
                   ) : (
@@ -227,7 +226,7 @@ const Index = () => {
           <img src={logoImg} alt="Kompas" className="h-8 w-auto" />
         </div>
         <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Buscar bairro, rua..."
@@ -254,7 +253,7 @@ const Index = () => {
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {filteredProperties.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <MapPin size={32} className="mx-auto mb-2 opacity-40" />
+                <MapPin size={32} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm font-medium">Nenhum imóvel encontrado</p>
                 <p className="text-xs mt-1">Tente ajustar os filtros</p>
               </div>
