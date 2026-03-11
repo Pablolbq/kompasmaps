@@ -76,9 +76,8 @@ const Index = () => {
       <div className="h-[100dvh] flex flex-col bg-background">
         {/* Header */}
         <header className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <img src={logoIcon} alt="Kompas" className="w-7 h-7 rounded-lg" />
-            <span className="font-semibold text-sm text-foreground tracking-tight">Kompas</span>
+          <div className="flex items-center">
+            <img src={logoImg} alt="Kompas" className="h-7 w-auto" />
           </div>
           <div className="relative">
             <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
