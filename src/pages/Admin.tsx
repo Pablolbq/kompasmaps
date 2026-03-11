@@ -16,6 +16,33 @@ const defaultForm = {
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
 };
 
+const DEFAULT_LAT = -25.0945;
+const DEFAULT_LNG = -50.1633;
+
+const pinIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="background:#1a9a8a;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.25);border:3px solid white;"><span style="transform:rotate(45deg);font-size:14px;">📍</span></div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+function LocationPicker({ lat, lng, onChange }: { lat: number; lng: number; onChange: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onChange(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return <Marker position={[lat, lng]} icon={pinIcon} />;
+}
+
+function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([lat, lng], map.getZoom());
+  }, [lat, lng, map]);
+  return null;
+}
+
 type DbProperty = Property & { archived: boolean };
 
 function formatPrice(price: number): string {
