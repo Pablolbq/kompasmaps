@@ -122,8 +122,8 @@ export default function Admin() {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">URL da Imagem</label>
-            <input className={inputClass} value={form.image} onChange={(e) => set('image', e.target.value)} placeholder="https://..." />
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">URLs das Imagens (separadas por vírgula)</label>
+            <input className={inputClass} value={form.images} onChange={(e) => set('images', e.target.value)} placeholder="https://img1.jpg, https://img2.jpg" />
           </div>
 
           <div>
