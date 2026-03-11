@@ -77,10 +77,8 @@ const Index = () => {
         {/* Header */}
         <header className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <MapPin size={14} className="text-primary-foreground" />
-            </div>
-            <h1 className="font-bold text-sm text-foreground">ImovelMap</h1>
+            <img src={logoIcon} alt="Kompas" className="w-7 h-7 rounded-lg" />
+            <span className="font-semibold text-sm text-foreground tracking-tight">Kompas</span>
           </div>
           <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
