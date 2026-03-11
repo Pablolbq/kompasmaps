@@ -253,7 +253,7 @@ const Index = () => {
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {filteredProperties.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <MapPin size={32} className="mx-auto mb-2 opacity-40" />
+                <MapPin size={32} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm font-medium">Nenhum imóvel encontrado</p>
                 <p className="text-xs mt-1">Tente ajustar os filtros</p>
               </div>
