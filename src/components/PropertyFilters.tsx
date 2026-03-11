@@ -1,6 +1,7 @@
 import { PropertyType, propertyTypeLabels } from '@/data/properties';
 import { Home, Building2, LandPlot, Store, SlidersHorizontal, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Slider } from '@/components/ui/slider';
 
 const SW = 1.5;
 
@@ -33,20 +34,77 @@ interface PropertyFiltersProps {
   onAdvancedFiltersChange: (filters: AdvancedFilters) => void;
 }
 
-function NumberInput({ label, value, onChange, placeholder }: { label: string; value: number | null; onChange: (v: number | null) => void; placeholder?: string }) {
+function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
+  label: string;
+  value: number | null;
+  onChange: (v: number | null) => void;
+  min: number;
+  max: number;
+  step: number;
+  formatValue?: (v: number) => string;
+}) {
+  const displayValue = value ?? min;
+  const fmt = formatValue || ((v: number) => String(v));
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
-      <input
-        type="number"
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
-        placeholder={placeholder}
-        className="px-2.5 py-1.5 rounded-md bg-secondary text-xs text-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30 w-full"
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
+        <span className="text-[11px] font-semibold text-foreground">
+          {value !== null ? fmt(value) : 'Qualquer'}
+        </span>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={[displayValue]}
+        onValueChange={([v]) => onChange(v === min ? null : v)}
       />
     </div>
   );
 }
+
+function RangeSliderFilter({ label, valueMin, valueMax, onChangeMin, onChangeMax, min, max, step, formatValue }: {
+  label: string;
+  valueMin: number | null;
+  valueMax: number | null;
+  onChangeMin: (v: number | null) => void;
+  onChangeMax: (v: number | null) => void;
+  min: number;
+  max: number;
+  step: number;
+  formatValue?: (v: number) => string;
+}) {
+  const lo = valueMin ?? min;
+  const hi = valueMax ?? max;
+  const fmt = formatValue || ((v: number) => String(v));
+  return (
+    <div className="flex flex-col gap-1.5 col-span-2">
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
+        <span className="text-[11px] font-semibold text-foreground">
+          {fmt(lo)} — {hi >= max ? fmt(max) + '+' : fmt(hi)}
+        </span>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={[lo, hi]}
+        onValueChange={([newLo, newHi]) => {
+          onChangeMin(newLo === min ? null : newLo);
+          onChangeMax(newHi === max ? null : newHi);
+        }}
+      />
+    </div>
+  );
+}
+
+const formatBRL = (v: number) => {
+  if (v >= 1000000) return `R$ ${(v / 1000000).toFixed(1)}M`;
+  if (v >= 1000) return `R$ ${(v / 1000).toFixed(0)}k`;
+  return `R$ ${v}`;
+};
 
 export default function PropertyFilters({ activeTypes, onToggleType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
   const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
@@ -54,7 +112,6 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
   const allSelected = activeTypes.length === types.length;
   const [showHint, setShowHint] = useState(true);
 
-  // Hide hint once user interacts with filters
   useEffect(() => {
     if (!allSelected) setShowHint(false);
   }, [allSelected]);
@@ -112,13 +169,51 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
       </button>
 
       {showAdvanced && (
-        <div className="grid grid-cols-2 gap-2 pt-1 animate-accordion-down">
-          <NumberInput label="Preço mín" value={advancedFilters.priceMin} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })} placeholder="R$" />
-          <NumberInput label="Preço máx" value={advancedFilters.priceMax} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })} placeholder="R$" />
-          <NumberInput label="Quartos mín" value={advancedFilters.bedroomsMin} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })} />
-          <NumberInput label="Banheiros mín" value={advancedFilters.bathroomsMin} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })} />
-          <NumberInput label="Vagas mín" value={advancedFilters.garageMin} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })} />
-          <NumberInput label="Área mín (m²)" value={advancedFilters.areaMin} onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })} />
+        <div className="grid grid-cols-2 gap-4 pt-1 animate-accordion-down">
+          <RangeSliderFilter
+            label="Preço"
+            valueMin={advancedFilters.priceMin}
+            valueMax={advancedFilters.priceMax}
+            onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })}
+            onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })}
+            min={0}
+            max={5000000}
+            step={50000}
+            formatValue={formatBRL}
+          />
+          <SliderFilter
+            label="Quartos mín"
+            value={advancedFilters.bedroomsMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })}
+            min={0}
+            max={6}
+            step={1}
+          />
+          <SliderFilter
+            label="Banheiros mín"
+            value={advancedFilters.bathroomsMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })}
+            min={0}
+            max={5}
+            step={1}
+          />
+          <SliderFilter
+            label="Vagas mín"
+            value={advancedFilters.garageMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })}
+            min={0}
+            max={5}
+            step={1}
+          />
+          <SliderFilter
+            label="Área mín (m²)"
+            value={advancedFilters.areaMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
+            min={0}
+            max={1000}
+            step={10}
+            formatValue={(v) => `${v} m²`}
+          />
         </div>
       )}
     </div>
