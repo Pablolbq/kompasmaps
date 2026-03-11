@@ -176,7 +176,7 @@ export default function Admin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.price || !form.area || !form.address || !form.neighborhood || !form.lat || !form.lng) {
+    if (!form.title || !form.price || !form.area || !form.address || !form.neighborhood) {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
