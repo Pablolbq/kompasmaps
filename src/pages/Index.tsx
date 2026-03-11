@@ -162,6 +162,7 @@ const Index = () => {
                         property={property}
                         isSelected={selectedId === property.id}
                         onClick={() => handleSelect(property.id)}
+                        onExpand={() => setDetailProperty(property.id)}
                       />
                     ))
                   )}
