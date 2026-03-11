@@ -240,6 +240,7 @@ const Index = () => {
             properties={filteredProperties}
             selectedId={selectedId}
             onSelect={handleSelect}
+            onDeselect={() => setSelectedId(null)}
           />
         </main>
       </div>
