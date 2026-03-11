@@ -68,7 +68,7 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
         </button>
       </div>
 
-      {expanded && (
+      {!onExpand && expanded && (
         <div className="px-3.5 pb-3.5 space-y-2 animate-accordion-down">
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <MapPin size={11} /> {property.address}
