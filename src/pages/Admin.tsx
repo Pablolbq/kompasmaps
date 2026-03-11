@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
-  garageSpaces: '', address: '', neighborhood: '', lat: '', lng: '', description: '',
+  garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
 };
 
 type DbProperty = Property & { archived: boolean };
