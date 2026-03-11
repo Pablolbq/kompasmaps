@@ -383,9 +383,15 @@ export default function Admin() {
               <input className={inputClass} value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="Rua Santos Dumont, 450" />
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
-              <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Bairro *</label>
+                <input className={inputClass} value={form.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} placeholder="Jardim Carvalho" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>
+                <input className={inputClass} value={form.cep} onChange={(e) => set('cep', e.target.value)} placeholder="84015-000" maxLength={9} />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
