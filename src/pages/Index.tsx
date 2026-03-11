@@ -7,8 +7,9 @@ import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import PropertyDetailMobile from '@/components/PropertyDetailMobile';
-import { MapPin, Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, MapPin } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Index = () => {
   const isMobile = useIsMobile();
