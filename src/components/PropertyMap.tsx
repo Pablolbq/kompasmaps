@@ -1,20 +1,22 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Property, propertyTypeLabels } from '@/data/properties';
-import { Home, Building2, LandPlot, MapPin, BedDouble, Bath, Ruler } from 'lucide-react';
+import { Property, propertyTypeLabels, getWhatsAppLink } from '@/data/properties';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 const typeColors: Record<string, string> = {
   casa: '#1a9a8a',
   apartamento: '#3b6fe0',
   terreno: '#d4872a',
+  comercial: '#8b5cf6',
 };
 
 const typeIcons: Record<string, string> = {
   casa: '🏠',
   apartamento: '🏢',
   terreno: '📐',
+  comercial: '🏪',
 };
 
 function createCustomIcon(type: string) {
@@ -49,13 +51,11 @@ function formatPrice(price: number): string {
 
 function MapBoundsUpdater({ properties }: { properties: Property[] }) {
   const map = useMap();
-
   useEffect(() => {
     if (properties.length === 0) return;
     const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
   }, [properties, map]);
-
   return null;
 }
 
@@ -70,7 +70,7 @@ export default function PropertyMap({ properties, selectedId, onSelect }: Proper
     <MapContainer
       center={[-25.0945, -50.1633]}
       zoom={13}
-      className="h-full w-full rounded-xl"
+      className="h-full w-full"
       zoomControl={false}
     >
       <TileLayer
@@ -83,23 +83,14 @@ export default function PropertyMap({ properties, selectedId, onSelect }: Proper
           key={property.id}
           position={[property.lat, property.lng]}
           icon={createCustomIcon(property.type)}
-          eventHandlers={{
-            click: () => onSelect(property.id),
-          }}
+          eventHandlers={{ click: () => onSelect(property.id) }}
         >
           <Popup>
             <div className="p-3 min-w-[220px]">
-              <img
-                src={property.image}
-                alt={property.title}
-                className="w-full h-28 object-cover rounded-lg mb-2"
-              />
+              <img src={property.image} alt={property.title} className="w-full h-28 object-cover rounded-lg mb-2" />
               <span
                 className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
-                style={{
-                  background: typeColors[property.type] + '18',
-                  color: typeColors[property.type],
-                }}
+                style={{ background: typeColors[property.type] + '18', color: typeColors[property.type] }}
               >
                 {propertyTypeLabels[property.type]}
               </span>
@@ -111,8 +102,17 @@ export default function PropertyMap({ properties, selectedId, onSelect }: Proper
                 <span className="flex items-center gap-1"><Ruler size={11} /> {property.area}m²</span>
                 {property.bedrooms && <span className="flex items-center gap-1"><BedDouble size={11} /> {property.bedrooms}</span>}
                 {property.bathrooms && <span className="flex items-center gap-1"><Bath size={11} /> {property.bathrooms}</span>}
+                {property.garageSpaces && <span className="flex items-center gap-1"><Car size={11} /> {property.garageSpaces}</span>}
               </div>
               <p className="font-bold text-primary mt-2 text-base">{formatPrice(property.price)}</p>
+              <a
+                href={getWhatsAppLink(property)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-[#25D366] hover:bg-[#20bd5a] text-white transition-colors"
+              >
+                <MessageCircle size={12} /> WhatsApp
+              </a>
             </div>
           </Popup>
         </Marker>
