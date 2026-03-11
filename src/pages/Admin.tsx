@@ -122,7 +122,7 @@ export default function Admin() {
     }
     toast.success('Imóvel adicionado com sucesso!');
     setForm(defaultForm);
-    setImageUrls(['']);
+    setImageUrls([]);
   };
 
   return (
