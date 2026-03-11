@@ -1,6 +1,6 @@
 import { PropertyType, propertyTypeLabels } from '@/data/properties';
 import { Home, Building2, LandPlot, Store, SlidersHorizontal, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SW = 1.5;
 
