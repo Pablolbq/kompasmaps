@@ -52,7 +52,10 @@ const Index = () => {
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
-    if (!isMobile) {
+    if (isMobile) {
+      // When handle is minimized, expand to half so the card is visible
+      setSheetMode((m) => m === 'mini' ? 'half' : m);
+    } else {
       setTimeout(() => {
         cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
