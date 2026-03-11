@@ -100,7 +100,6 @@ export default function Admin() {
     }
     setSubmitting(true);
     const { error } = await supabase.from('properties').insert({
-    const { error } = await supabase.from('properties').insert({
       title: form.title,
       type: form.type,
       price: Number(form.price),
