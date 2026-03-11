@@ -1,25 +1,26 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
 import logoImg from '@/assets/logo.png';
-import { PropertyType } from '@/data/properties';
+import { PropertyType, WHATSAPP_NUMBER } from '@/data/properties';
 import { useProperties } from '@/hooks/useProperties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import PropertyDetailMobile from '@/components/PropertyDetailMobile';
-import { Search, X, Loader2, MapPin } from 'lucide-react';
+import { Search, X, Loader2, MapPin, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import logoIcon from '@/assets/logo-icon.png';
 
 const Index = () => {
   const isMobile = useIsMobile();
   const { data: properties = [], isLoading } = useProperties();
-  const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa', 'apartamento', 'terreno', 'comercial']);
+  const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
   const [detailProperty, setDetailProperty] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
+  const [firstInteraction, setFirstInteraction] = useState(true);
   // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -37,6 +38,9 @@ const Index = () => {
         p.address.toLowerCase().includes(search.toLowerCase())
       )) return false;
 
+      // Advanced filters don't apply to mídia
+      if (p.type === 'midia') return true;
+
       const af = advancedFilters;
       if (af.priceMin != null && p.price < af.priceMin) return false;
       if (af.priceMax != null && p.price > af.priceMax) return false;
@@ -50,15 +54,25 @@ const Index = () => {
   }, [activeTypes, search, advancedFilters]);
 
   const toggleType = useCallback((type: PropertyType) => {
-    setActiveTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
-  }, []);
+    if (firstInteraction) {
+      // First click: select only the clicked type
+      setFirstInteraction(false);
+      setActiveTypes([type]);
+    } else {
+      setActiveTypes((prev) => {
+        if (prev.includes(type)) {
+          // Don't allow deselecting all
+          if (prev.length === 1) return prev;
+          return prev.filter((t) => t !== type);
+        }
+        return [...prev, type];
+      });
+    }
+  }, [firstInteraction]);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
     if (isMobile) {
-      // When handle is minimized, expand to half so the card is visible
       setSheetMode((m) => m === 'mini' ? 'half' : m);
     } else {
       setTimeout(() => {
@@ -70,6 +84,8 @@ const Index = () => {
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
+  const contactLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de falar com vocês.')}`;
+
   // ─── MOBILE LAYOUT ────────────────────────────────────
   if (isMobile) {
     return (
@@ -79,15 +95,26 @@ const Index = () => {
           <div className="flex items-center">
             <img src={logoImg} alt="Kompas" className="h-7 w-auto" />
           </div>
-          <div className="relative">
-            <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-36 transition-all"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 pr-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-32 transition-all"
+              />
+            </div>
+            <a
+              href={contactLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent text-accent-foreground text-[11px] font-semibold whitespace-nowrap shadow-sm hover:shadow-md transition-all"
+            >
+              <MessageCircle size={13} strokeWidth={1.5} />
+              Contato
+            </a>
           </div>
         </header>
 
@@ -104,7 +131,6 @@ const Index = () => {
 
         {/* Map + draggable bottom sheet */}
         <div className="flex-1 relative overflow-hidden" ref={containerRef}>
-          {/* Map fills entire area */}
           <div className="absolute inset-0">
             <PropertyMap
               properties={filteredProperties}
@@ -115,7 +141,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Bottom sheet — uses transform for GPU-accelerated 60fps */}
           <div
             className="absolute left-0 right-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border flex flex-col will-change-transform"
             style={{
@@ -127,13 +152,11 @@ const Index = () => {
               transition: dragTop !== null ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
             }}
           >
-            {/* Handle — drag to resize */}
             <div
               className="flex justify-center py-5 flex-shrink-0 cursor-grab touch-none"
               onTouchStart={(e: RTE<HTMLDivElement>) => {
                 const sheet = (e.currentTarget.parentElement as HTMLElement);
                 touchStartY.current = e.touches[0].clientY;
-                // Get current translateY value
                 const matrix = new DOMMatrix(getComputedStyle(sheet).transform);
                 sheetStartTop.current = matrix.m42;
               }}
@@ -164,7 +187,6 @@ const Index = () => {
               <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40" />
             </div>
 
-            {/* Content */}
             <div className="flex-1 overflow-y-auto px-3 pb-3">
               {selectedProperty ? (
                 <div>
@@ -205,7 +227,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Full-page detail view for mobile */}
         {detailProp && (
           <PropertyDetailMobile
             property={detailProp}
@@ -219,26 +240,34 @@ const Index = () => {
   // ─── DESKTOP LAYOUT ────────────────────────────────────
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
       <header className="flex items-center justify-between px-4 md:px-5 py-3 border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="flex items-center">
           <img src={logoImg} alt="Kompas" className="h-8 w-auto" />
         </div>
-        <div className="relative">
-          <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Buscar bairro, rua..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-56 transition-all"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar bairro, rua..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 pr-4 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border-0 outline-none focus:ring-2 focus:ring-primary/30 w-56 transition-all"
+            />
+          </div>
+          <a
+            href={contactLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+          >
+            <MessageCircle size={15} strokeWidth={1.5} />
+            Fale conosco
+          </a>
         </div>
       </header>
 
-      {/* Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
         <aside className="flex w-[340px] flex-shrink-0 border-r border-border flex-col bg-card">
           <div className="p-4 border-b border-border">
             <PropertyFilters
@@ -271,7 +300,6 @@ const Index = () => {
           </div>
         </aside>
 
-        {/* Map */}
         <main className="flex flex-1 relative">
           <PropertyMap
             properties={filteredProperties}
@@ -283,7 +311,6 @@ const Index = () => {
         </main>
       </div>
 
-      {/* Detail dialog */}
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}

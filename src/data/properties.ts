@@ -1,4 +1,5 @@
-export type PropertyType = 'casa' | 'apartamento' | 'terreno' | 'comercial';
+export type PropertyType = 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'midia';
+export type MediaType = 'digital' | 'estatica';
 
 export interface Property {
   id: string;
@@ -15,6 +16,7 @@ export interface Property {
   lng: number;
   images: string[];
   description: string;
+  mediaType?: MediaType;
 }
 
 /** Backward compat helper */
@@ -27,6 +29,12 @@ export const propertyTypeLabels: Record<PropertyType, string> = {
   apartamento: 'Apartamento',
   terreno: 'Terreno',
   comercial: 'Comercial',
+  midia: 'Mídia',
+};
+
+export const mediaTypeLabels: Record<MediaType, string> = {
+  digital: 'Mídia Digital',
+  estatica: 'Mídia Estática',
 };
 
 export const WHATSAPP_NUMBER = '5542991519146';
@@ -54,6 +62,7 @@ export function mapDbProperty(row: {
   lng: number;
   images: string[];
   description: string;
+  media_type?: string | null;
 }): Property {
   return {
     id: row.id,
@@ -70,5 +79,6 @@ export function mapDbProperty(row: {
     lng: row.lng,
     images: row.images,
     description: row.description,
+    mediaType: (row.media_type as MediaType) ?? undefined,
   };
 }
