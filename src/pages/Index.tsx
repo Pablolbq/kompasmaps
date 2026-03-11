@@ -113,22 +113,23 @@ const Index = () => {
               sheetMode === 'full' ? 'top-0' : sheetMode === 'half' ? 'top-1/2' : 'top-[calc(100%-3rem)]'
             }`}
           >
-            {/* Handle — swipe gestures only here */}
+            {/* Handle — larger touch target for easier mobile use */}
             <div
-              className="flex justify-center py-3 flex-shrink-0 cursor-grab"
+              className="flex justify-center py-5 flex-shrink-0 cursor-grab touch-none"
               onTouchStart={(e: RTE<HTMLDivElement>) => { touchStartY.current = e.touches[0].clientY; }}
+              onTouchMove={(e: RTE<HTMLDivElement>) => { e.preventDefault(); }}
               onTouchEnd={(e: RTE<HTMLDivElement>) => {
                 if (touchStartY.current === null) return;
                 const diff = touchStartY.current - e.changedTouches[0].clientY;
-                if (diff > 40) {
+                if (diff > 30) {
                   setSheetMode((m) => m === 'mini' ? 'half' : 'full');
-                } else if (diff < -40) {
+                } else if (diff < -30) {
                   setSheetMode((m) => m === 'full' ? 'half' : 'mini');
                 }
                 touchStartY.current = null;
               }}
             >
-              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40" />
             </div>
 
             {/* Content */}
@@ -161,6 +162,7 @@ const Index = () => {
                         property={property}
                         isSelected={selectedId === property.id}
                         onClick={() => handleSelect(property.id)}
+                        onExpand={() => setDetailProperty(property.id)}
                       />
                     ))
                   )}
@@ -169,6 +171,13 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        {/* Detail dialog for mobile */}
+        <PropertyDetailDialog
+          property={detailProp ?? null}
+          open={!!detailProperty}
+          onClose={() => setDetailProperty(null)}
+        />
       </div>
     );
   }
