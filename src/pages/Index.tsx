@@ -171,6 +171,13 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        {/* Detail dialog for mobile */}
+        <PropertyDetailDialog
+          property={detailProp ?? null}
+          open={!!detailProperty}
+          onClose={() => setDetailProperty(null)}
+        />
       </div>
     );
   }
