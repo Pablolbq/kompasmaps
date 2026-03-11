@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { addProperty, PropertyType, propertyTypeLabels } from '@/data/properties';
-import { MapPin, Plus, ArrowLeft, Trash2, ImagePlus, Lock } from 'lucide-react';
+import { PropertyType, propertyTypeLabels } from '@/data/properties';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { MapPin, Plus, ArrowLeft, Trash2, ImagePlus, Lock, LogOut, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'imovelmap2024';
 
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
@@ -13,24 +12,35 @@ const defaultForm = {
 };
 
 export default function Admin() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
+  const { session, loading, isAdmin, signIn, signOut } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [submitting, setSubmitting] = useState(false);
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      setAuthenticated(true);
-    } else {
-      toast.error('Usuário ou senha incorretos.');
+    setLoginLoading(true);
+    const { error } = await signIn(email, password);
+    setLoginLoading(false);
+    if (error) {
+      toast.error('Email ou senha incorretos.');
     }
   };
 
-  if (!authenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
+  }
+
+  if (!session) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 bg-card p-6 rounded-2xl border border-border shadow-lg">
@@ -42,15 +52,15 @@ export default function Admin() {
           <h1 className="text-lg font-bold text-foreground text-center">Área Administrativa</h1>
           <p className="text-xs text-muted-foreground text-center">Faça login para continuar</p>
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Usuário</label>
-            <input className={inputClass} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuário" autoComplete="username" />
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Email</label>
+            <input type="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@email.com" autoComplete="email" />
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Senha</label>
             <input type="password" className={inputClass} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" autoComplete="current-password" />
           </div>
-          <button type="submit" className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all">
-            Entrar
+          <button type="submit" disabled={loginLoading} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-50">
+            {loginLoading ? <Loader2 size={16} className="animate-spin" /> : 'Entrar'}
           </button>
           <Link to="/" className="block text-center text-xs text-muted-foreground hover:text-foreground transition-colors mt-2">
             ← Voltar ao mapa
@@ -60,27 +70,46 @@ export default function Admin() {
     );
   }
 
-  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-4 bg-card p-6 rounded-2xl border border-border shadow-lg text-center">
+          <h1 className="text-lg font-bold text-foreground">Acesso negado</h1>
+          <p className="text-sm text-muted-foreground">Sua conta não tem permissão de administrador.</p>
+          <div className="flex gap-2 justify-center">
+            <button onClick={signOut} className="px-4 py-2 rounded-lg bg-secondary text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors">
+              Sair
+            </button>
+            <Link to="/" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+              Voltar ao mapa
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
   const addImageField = () => setImageUrls((prev) => [...prev, '']);
   const removeImageField = (index: number) => setImageUrls((prev) => prev.filter((_, i) => i !== index));
   const updateImageField = (index: number, value: string) => setImageUrls((prev) => prev.map((v, i) => i === index ? value : v));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.price || !form.area || !form.address || !form.neighborhood || !form.lat || !form.lng) {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
+    setSubmitting(true);
     const validImages = imageUrls.map(s => s.trim()).filter(Boolean);
-    addProperty({
+    const { error } = await supabase.from('properties').insert({
       title: form.title,
       type: form.type,
       price: Number(form.price),
       area: Number(form.area),
-      bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
-      bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-      garageSpaces: form.garageSpaces ? Number(form.garageSpaces) : undefined,
+      bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
+      bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
+      garage_spaces: form.garageSpaces ? Number(form.garageSpaces) : null,
       address: form.address,
       neighborhood: form.neighborhood,
       lat: Number(form.lat),
@@ -88,6 +117,11 @@ export default function Admin() {
       images: validImages.length > 0 ? validImages : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     });
+    setSubmitting(false);
+    if (error) {
+      toast.error('Erro ao adicionar imóvel: ' + error.message);
+      return;
+    }
     toast.success('Imóvel adicionado com sucesso!');
     setForm(defaultForm);
     setImageUrls(['']);
@@ -95,19 +129,24 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="flex items-center gap-3 px-4 md:px-6 py-3.5 border-b border-border bg-card/80 backdrop-blur-sm">
-        <Link to="/" className="p-2 rounded-lg hover:bg-secondary transition-colors">
-          <ArrowLeft size={18} className="text-foreground" />
-        </Link>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <MapPin size={18} className="text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="font-bold text-base text-foreground leading-tight">Admin</h1>
-            <p className="text-[11px] text-muted-foreground">Adicionar imóvel</p>
+      <header className="flex items-center justify-between px-4 md:px-6 py-3.5 border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="p-2 rounded-lg hover:bg-secondary transition-colors">
+            <ArrowLeft size={18} className="text-foreground" />
+          </Link>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <MapPin size={18} className="text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-bold text-base text-foreground leading-tight">Admin</h1>
+              <p className="text-[11px] text-muted-foreground">Adicionar imóvel</p>
+            </div>
           </div>
         </div>
+        <button onClick={signOut} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+          <LogOut size={14} /> Sair
+        </button>
       </header>
 
       <div className="max-w-lg mx-auto p-4 md:p-6">
@@ -192,7 +231,6 @@ export default function Admin() {
                   )}
                 </div>
               ))}
-              {/* Preview thumbnails */}
               {imageUrls.some(u => u.trim()) && (
                 <div className="flex gap-2 flex-wrap mt-2">
                   {imageUrls.filter(u => u.trim()).map((url, i) => (
@@ -217,9 +255,10 @@ export default function Admin() {
 
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all"
+            disabled={submitting}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-50"
           >
-            <Plus size={16} /> Adicionar Imóvel
+            {submitting ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} /> Adicionar Imóvel</>}
           </button>
         </form>
       </div>
