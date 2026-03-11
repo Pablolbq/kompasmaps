@@ -161,6 +161,7 @@ export default function Admin() {
       garage_spaces: form.garageSpaces ? Number(form.garageSpaces) : null,
       address: form.address,
       neighborhood: form.neighborhood,
+      cep: form.cep,
       lat: Number(form.lat),
       lng: Number(form.lng),
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
