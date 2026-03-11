@@ -98,7 +98,7 @@ const Index = () => {
         </div>
 
         {/* Map + draggable bottom sheet */}
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative overflow-hidden" ref={containerRef}>
           {/* Map fills entire area */}
           <div className="absolute inset-0">
             <PropertyMap
@@ -112,24 +112,46 @@ const Index = () => {
 
           {/* Bottom sheet */}
           <div
-            className={`absolute left-0 right-0 bottom-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border transition-all duration-300 ease-out flex flex-col ${
-              sheetMode === 'full' ? 'top-0' : sheetMode === 'half' ? 'top-1/2' : 'top-[calc(100%-3rem)]'
-            }`}
+            className="absolute left-0 right-0 bottom-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border flex flex-col"
+            style={{
+              top: dragTop !== null
+                ? `${dragTop}px`
+                : sheetMode === 'full' ? '0px' : sheetMode === 'half' ? '50%' : 'calc(100% - 3rem)',
+              transition: dragTop !== null ? 'none' : 'top 0.3s ease-out',
+            }}
           >
-            {/* Handle — larger touch target for easier mobile use */}
+            {/* Handle — drag to resize */}
             <div
               className="flex justify-center py-5 flex-shrink-0 cursor-grab touch-none"
-              onTouchStart={(e: RTE<HTMLDivElement>) => { touchStartY.current = e.touches[0].clientY; }}
-              onTouchMove={(e: RTE<HTMLDivElement>) => { e.preventDefault(); }}
-              onTouchEnd={(e: RTE<HTMLDivElement>) => {
-                if (touchStartY.current === null) return;
-                const diff = touchStartY.current - e.changedTouches[0].clientY;
-                if (diff > 30) {
-                  setSheetMode((m) => m === 'mini' ? 'half' : 'full');
-                } else if (diff < -30) {
-                  setSheetMode((m) => m === 'full' ? 'half' : 'mini');
+              onTouchStart={(e: RTE<HTMLDivElement>) => {
+                const containerH = containerRef.current?.getBoundingClientRect();
+                const sheet = (e.currentTarget.parentElement as HTMLElement);
+                touchStartY.current = e.touches[0].clientY;
+                sheetStartTop.current = sheet.offsetTop;
+              }}
+              onTouchMove={(e: RTE<HTMLDivElement>) => {
+                if (touchStartY.current === null || sheetStartTop.current === null || !containerRef.current) return;
+                e.preventDefault();
+                const delta = e.touches[0].clientY - touchStartY.current;
+                const containerH = containerRef.current.clientHeight;
+                const newTop = Math.max(0, Math.min(containerH - 48, sheetStartTop.current + delta));
+                setDragTop(newTop);
+              }}
+              onTouchEnd={() => {
+                if (dragTop === null || !containerRef.current) {
+                  touchStartY.current = null;
+                  sheetStartTop.current = null;
+                  return;
                 }
+                const containerH = containerRef.current.clientHeight;
+                const ratio = dragTop / containerH;
+                // Snap to closest: full (<25%), half (25-75%), mini (>75%)
+                if (ratio < 0.25) setSheetMode('full');
+                else if (ratio < 0.75) setSheetMode('half');
+                else setSheetMode('mini');
+                setDragTop(null);
                 touchStartY.current = null;
+                sheetStartTop.current = null;
               }}
             >
               <div className="w-12 h-1.5 rounded-full bg-muted-foreground/40" />
