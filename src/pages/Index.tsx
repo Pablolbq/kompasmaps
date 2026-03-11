@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
 import { properties, PropertyType } from '@/data/properties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
@@ -14,6 +14,9 @@ const Index = () => {
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
   const [detailProperty, setDetailProperty] = useState<string | null>(null);
+  // Mobile bottom sheet: 'half' (50/50), 'full' (list covers map), 'mini' (map full, small handle)
+  const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
+  const touchStartY = useRef<number | null>(null);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -91,10 +94,10 @@ const Index = () => {
           />
         </div>
 
-        {/* Split view: Map top, selected card or list bottom */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Map - always visible, takes half */}
-          <div className="h-1/2 flex-shrink-0 relative">
+        {/* Map + draggable bottom sheet */}
+        <div className="flex-1 relative overflow-hidden">
+          {/* Map fills entire area */}
+          <div className="absolute inset-0">
             <PropertyMap
               properties={filteredProperties}
               selectedId={selectedId}
@@ -103,41 +106,66 @@ const Index = () => {
             />
           </div>
 
-          {/* Bottom half: selected card or scrollable list */}
-          <div className="h-1/2 flex-shrink-0 overflow-y-auto border-t border-border bg-card">
-            {selectedProperty ? (
-              <div className="p-3">
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="mb-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X size={14} /> Voltar à lista
-                </button>
-                <PropertyCard
-                  property={selectedProperty}
-                  isSelected={true}
-                  onClick={() => {}}
-                />
-              </div>
-            ) : (
-              <div className="p-3 space-y-3">
-                {filteredProperties.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MapPin size={28} className="mx-auto mb-2 opacity-40" />
-                    <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
-                  </div>
-                ) : (
-                  filteredProperties.map((property) => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      isSelected={selectedId === property.id}
-                      onClick={() => handleSelect(property.id)}
-                    />
-                  ))
-                )}
-              </div>
-            )}
+          {/* Bottom sheet */}
+          <div
+            className={`absolute left-0 right-0 bottom-0 bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border transition-all duration-300 ease-out flex flex-col ${
+              sheetMode === 'full' ? 'top-0' : sheetMode === 'half' ? 'top-1/2' : 'top-[calc(100%-3rem)]'
+            }`}
+            onTouchStart={(e: RTE<HTMLDivElement>) => { touchStartY.current = e.touches[0].clientY; }}
+            onTouchEnd={(e: RTE<HTMLDivElement>) => {
+              if (touchStartY.current === null) return;
+              const diff = touchStartY.current - e.changedTouches[0].clientY;
+              if (diff > 50) {
+                // swiped up
+                setSheetMode((m) => m === 'mini' ? 'half' : 'full');
+              } else if (diff < -50) {
+                // swiped down
+                setSheetMode((m) => m === 'full' ? 'half' : 'mini');
+              }
+              touchStartY.current = null;
+            }}
+          >
+            {/* Handle */}
+            <div className="flex justify-center py-2 flex-shrink-0 cursor-grab">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-3 pb-3">
+              {selectedProperty ? (
+                <div>
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="mb-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X size={14} /> Voltar à lista
+                  </button>
+                  <PropertyCard
+                    property={selectedProperty}
+                    isSelected={true}
+                    onClick={() => {}}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredProperties.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MapPin size={28} className="mx-auto mb-2 opacity-40" />
+                      <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
+                    </div>
+                  ) : (
+                    filteredProperties.map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        isSelected={selectedId === property.id}
+                        onClick={() => handleSelect(property.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
