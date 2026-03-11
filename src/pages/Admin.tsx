@@ -192,8 +192,8 @@ export default function Admin() {
       address: form.address,
       neighborhood: form.neighborhood,
       cep: form.cep,
-      lat: Number(form.lat),
-      lng: Number(form.lng),
+      lat: form.lat ? Number(form.lat) : DEFAULT_LAT,
+      lng: form.lng ? Number(form.lng) : DEFAULT_LNG,
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     };
