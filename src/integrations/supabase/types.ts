@@ -17,6 +17,7 @@ export type Database = {
       properties: {
         Row: {
           address: string
+          archived: boolean
           area: number
           bathrooms: number | null
           bedrooms: number | null
@@ -35,6 +36,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          archived?: boolean
           area: number
           bathrooms?: number | null
           bedrooms?: number | null
@@ -53,6 +55,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          archived?: boolean
           area?: number
           bathrooms?: number | null
           bedrooms?: number | null
