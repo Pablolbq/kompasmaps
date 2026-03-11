@@ -109,7 +109,7 @@ const Index = () => {
 
           {/* Bottom sheet */}
           <div
-            className={`absolute left-0 right-0 bottom-0 bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border transition-all duration-300 ease-out flex flex-col ${
+            className={`absolute left-0 right-0 bottom-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border transition-all duration-300 ease-out flex flex-col ${
               sheetMode === 'full' ? 'top-0' : sheetMode === 'half' ? 'top-1/2' : 'top-[calc(100%-3rem)]'
             }`}
           >
