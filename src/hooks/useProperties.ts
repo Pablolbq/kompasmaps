@@ -9,6 +9,7 @@ export function useProperties() {
       const { data, error } = await supabase
         .from('properties')
         .select('*')
+        .eq('archived', false)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []).map(mapDbProperty);
