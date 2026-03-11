@@ -223,11 +223,9 @@ export default function Admin() {
             </Link>
           )}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <MapPin size={18} className="text-primary-foreground" />
-            </div>
+            <img src={logoIcon} alt="Kompas" className="w-8 h-8 rounded-lg" />
             <div>
-              <h1 className="font-bold text-base text-foreground leading-tight">Admin</h1>
+              <h1 className="font-semibold text-base text-foreground leading-tight tracking-tight">Admin</h1>
               <p className="text-[11px] text-muted-foreground">
                 {view === 'form' ? (editingId ? 'Editar imóvel' : 'Novo imóvel') : 'Gerenciar imóveis'}
               </p>
