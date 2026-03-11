@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
+  mediaType: '' as string,
 };
 
 const DEFAULT_LAT = -25.0945;
