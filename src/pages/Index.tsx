@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
+import logoImg from '@/assets/logo.png';
 import { PropertyType } from '@/data/properties';
 import { useProperties } from '@/hooks/useProperties';
 import PropertyMap from '@/components/PropertyMap';
@@ -223,9 +224,7 @@ const Index = () => {
       {/* Header */}
       <header className="flex items-center justify-between px-4 md:px-5 py-3 border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <MapPin size={18} className="text-primary-foreground" />
-          </div>
+          <img src={logoImg} alt="Kompas" className="h-8 w-auto" />
           <div>
             <h1 className="font-bold text-base text-foreground leading-tight">ImovelMap</h1>
             <p className="text-[11px] text-muted-foreground">Ponta Grossa, PR</p>
