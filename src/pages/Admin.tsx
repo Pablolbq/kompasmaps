@@ -4,6 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
 import { Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search, MapPin } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import logoIcon from '@/assets/logo-icon.png';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -12,6 +15,33 @@ const defaultForm = {
   title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
 };
+
+const DEFAULT_LAT = -25.0945;
+const DEFAULT_LNG = -50.1633;
+
+const pinIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="background:#1a9a8a;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.25);border:3px solid white;"><span style="transform:rotate(45deg);font-size:14px;">📍</span></div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+function LocationPicker({ lat, lng, onChange }: { lat: number; lng: number; onChange: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onChange(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return <Marker position={[lat, lng]} icon={pinIcon} />;
+}
+
+function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([lat, lng], map.getZoom());
+  }, [lat, lng, map]);
+  return null;
+}
 
 type DbProperty = Property & { archived: boolean };
 
@@ -146,7 +176,7 @@ export default function Admin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.price || !form.area || !form.address || !form.neighborhood || !form.lat || !form.lng) {
+    if (!form.title || !form.price || !form.area || !form.address || !form.neighborhood) {
       toast.error('Preencha todos os campos obrigatórios.');
       return;
     }
@@ -162,8 +192,8 @@ export default function Admin() {
       address: form.address,
       neighborhood: form.neighborhood,
       cep: form.cep,
-      lat: Number(form.lat),
-      lng: Number(form.lng),
+      lat: form.lat ? Number(form.lat) : DEFAULT_LAT,
+      lng: form.lng ? Number(form.lng) : DEFAULT_LNG,
       images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop'],
       description: form.description,
     };
@@ -394,15 +424,38 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Latitude *</label>
-                <input type="number" step="any" className={inputClass} value={form.lat} onChange={(e) => set('lat', e.target.value)} placeholder="-25.0916" />
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Localização no Mapa <span className="text-muted-foreground/60">(opcional — clique para ajustar o pin)</span></label>
+              <div className="h-48 rounded-lg overflow-hidden border border-border mt-1">
+                <MapContainer
+                  center={[form.lat ? Number(form.lat) : DEFAULT_LAT, form.lng ? Number(form.lng) : DEFAULT_LNG]}
+                  zoom={14}
+                  className="h-full w-full"
+                  zoomControl={true}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationPicker
+                    lat={form.lat ? Number(form.lat) : DEFAULT_LAT}
+                    lng={form.lng ? Number(form.lng) : DEFAULT_LNG}
+                    onChange={(lat, lng) => {
+                      set('lat', String(lat));
+                      set('lng', String(lng));
+                    }}
+                  />
+                  <RecenterMap
+                    lat={form.lat ? Number(form.lat) : DEFAULT_LAT}
+                    lng={form.lng ? Number(form.lng) : DEFAULT_LNG}
+                  />
+                </MapContainer>
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Longitude *</label>
-                <input type="number" step="any" className={inputClass} value={form.lng} onChange={(e) => set('lng', e.target.value)} placeholder="-50.1570" />
-              </div>
+              {form.lat && form.lng && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  📍 {Number(form.lat).toFixed(6)}, {Number(form.lng).toFixed(6)}
+                </p>
+              )}
             </div>
 
             <div>
