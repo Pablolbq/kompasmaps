@@ -112,22 +112,22 @@ const Index = () => {
             className={`absolute left-0 right-0 bottom-0 bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border transition-all duration-300 ease-out flex flex-col ${
               sheetMode === 'full' ? 'top-0' : sheetMode === 'half' ? 'top-1/2' : 'top-[calc(100%-3rem)]'
             }`}
-            onTouchStart={(e: RTE<HTMLDivElement>) => { touchStartY.current = e.touches[0].clientY; }}
-            onTouchEnd={(e: RTE<HTMLDivElement>) => {
-              if (touchStartY.current === null) return;
-              const diff = touchStartY.current - e.changedTouches[0].clientY;
-              if (diff > 50) {
-                // swiped up
-                setSheetMode((m) => m === 'mini' ? 'half' : 'full');
-              } else if (diff < -50) {
-                // swiped down
-                setSheetMode((m) => m === 'full' ? 'half' : 'mini');
-              }
-              touchStartY.current = null;
-            }}
           >
-            {/* Handle */}
-            <div className="flex justify-center py-2 flex-shrink-0 cursor-grab">
+            {/* Handle — swipe gestures only here */}
+            <div
+              className="flex justify-center py-3 flex-shrink-0 cursor-grab"
+              onTouchStart={(e: RTE<HTMLDivElement>) => { touchStartY.current = e.touches[0].clientY; }}
+              onTouchEnd={(e: RTE<HTMLDivElement>) => {
+                if (touchStartY.current === null) return;
+                const diff = touchStartY.current - e.changedTouches[0].clientY;
+                if (diff > 40) {
+                  setSheetMode((m) => m === 'mini' ? 'half' : 'full');
+                } else if (diff < -40) {
+                  setSheetMode((m) => m === 'full' ? 'half' : 'mini');
+                }
+                touchStartY.current = null;
+              }}
+            >
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
             </div>
 
