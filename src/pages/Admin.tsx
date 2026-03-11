@@ -410,11 +410,23 @@ export default function Admin() {
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo *</label>
               <select className={inputClass} value={form.type} onChange={(e) => set('type', e.target.value)}>
-                {(['casa', 'apartamento', 'terreno', 'comercial'] as PropertyType[]).map((t) => (
+                {(['casa', 'apartamento', 'terreno', 'comercial', 'midia'] as PropertyType[]).map((t) => (
                   <option key={t} value={t}>{propertyTypeLabels[t]}</option>
                 ))}
               </select>
             </div>
+
+            {form.type === 'midia' && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de Mídia</label>
+                <select className={inputClass} value={form.mediaType} onChange={(e) => set('mediaType', e.target.value)}>
+                  <option value="">Selecione...</option>
+                  {(['digital', 'estatica'] as MediaType[]).map((t) => (
+                    <option key={t} value={t}>{mediaTypeLabels[t]}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -427,20 +439,22 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Quartos</label>
-                <input type="number" className={inputClass} value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+            {form.type !== 'midia' && (
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Quartos</label>
+                  <input type="number" className={inputClass} value={form.bedrooms} onChange={(e) => set('bedrooms', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Banheiros</label>
+                  <input type="number" className={inputClass} value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Vagas</label>
+                  <input type="number" className={inputClass} value={form.garageSpaces} onChange={(e) => set('garageSpaces', e.target.value)} />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Banheiros</label>
-                <input type="number" className={inputClass} value={form.bathrooms} onChange={(e) => set('bathrooms', e.target.value)} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Vagas</label>
-                <input type="number" className={inputClass} value={form.garageSpaces} onChange={(e) => set('garageSpaces', e.target.value)} />
-              </div>
-            </div>
+            )}
 
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">CEP</label>
