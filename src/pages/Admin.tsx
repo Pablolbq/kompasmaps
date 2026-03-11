@@ -76,10 +76,8 @@ export default function Admin() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 bg-card p-6 rounded-2xl border border-border shadow-lg">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Lock size={20} className="text-primary-foreground" />
-            </div>
+           <div className="flex items-center justify-center gap-2 mb-2">
+            <img src={logoIcon} alt="Kompas" className="w-10 h-10 rounded-xl" />
           </div>
           <h1 className="text-lg font-bold text-foreground text-center">Área Administrativa</h1>
           <p className="text-xs text-muted-foreground text-center">Faça login para continuar</p>
