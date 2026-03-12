@@ -165,6 +165,7 @@ function MarkerClusterLayer({
 
       // Simple click: select + let Leaflet handle popup natively
       marker.on('click', () => {
+        markerJustClicked = true;
         onSelect(property.id);
       });
 
