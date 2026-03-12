@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone } from 'lucide-react';
@@ -27,12 +27,26 @@ interface Props {
 export default function PropertyDetailDialog({ property, open, onClose }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (!open) {
+      setLightboxIndex(null);
+    }
+  }, [open, property?.id]);
+
   if (!property) return null;
   const isMidia = property.type === 'midia';
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          if (!o) {
+            setLightboxIndex(null);
+            onClose();
+          }
+        }}
+      >
         <DialogContent className="max-w-xl p-0 overflow-hidden max-h-[85vh]">
           <DialogTitle className="sr-only">{property.title}</DialogTitle>
           <div className="overflow-y-auto max-h-[85vh]">
@@ -93,3 +107,4 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
     </>
   );
 }
+
