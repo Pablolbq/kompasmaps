@@ -99,6 +99,30 @@ export default function Admin() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Import state
+  const [showImport, setShowImport] = useState(false);
+  const [xmlUrl, setXmlUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+
+  const handleImportXml = async () => {
+    if (!xmlUrl.trim()) { toast.error('Cole a URL do XML'); return; }
+    setImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-xml', {
+        body: { xmlUrl: xmlUrl.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) { toast.error(data.error); setImporting(false); return; }
+      toast.success(`Importados ${data.imported} de ${data.total} imóveis! ${data.skipped > 0 ? `(${data.skipped} ignorados)` : ''}`);
+      setShowImport(false);
+      setXmlUrl('');
+      fetchProperties();
+    } catch (err: any) {
+      toast.error('Erro na importação: ' + (err.message || 'Erro desconhecido'));
+    }
+    setImporting(false);
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
 
   const fetchProperties = async () => {
