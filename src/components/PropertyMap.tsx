@@ -5,6 +5,12 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
+import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
 import { useEffect, useRef } from 'react';
 
 const typeColors: Record<string, string> = {
