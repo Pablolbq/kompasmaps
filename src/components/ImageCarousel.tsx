@@ -12,7 +12,7 @@ interface ImageCarouselProps {
   hideZoom?: boolean;
 }
 
-export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false, showControls = true }: ImageCarouselProps) {
+export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, onClickCenter, disableDrag = false, showControls = true, hideZoom = false }: ImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const total = images.length;
   const [dragOffset, setDragOffset] = useState(0);
