@@ -370,9 +370,10 @@ const Index = () => {
            setDetailProperty(null);
 
            if (closingId) {
+             setSelectedId(closingId);
              setTimeout(() => {
                focusMapProperty(closingId);
-             }, 80);
+             }, 260);
            }
          }}
          onViewOnMap={(id) => {
