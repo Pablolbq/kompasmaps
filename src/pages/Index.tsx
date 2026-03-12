@@ -31,6 +31,8 @@ const Index = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const mapRef = useRef<PropertyMapHandle>(null);
+  const [focusPropertyId, setFocusPropertyId] = useState<string | null>(null);
 
   // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
