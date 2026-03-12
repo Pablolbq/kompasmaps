@@ -158,7 +158,7 @@ function MarkerClusterLayer({
 
       marker.on('click', (e: L.LeafletMouseEvent) => {
         if (e.originalEvent) {
-          L.DomEvent.stopPropagation(e.originalEvent);
+          L.DomEvent.stop(e.originalEvent);
         }
 
         if (!isMobile && marker.getPopup()) {
