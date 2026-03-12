@@ -112,12 +112,12 @@ const formatBRL = (v: number) => {
 };
 
 export default function PropertyFilters({ activeTypes, onToggleType, activeListingTypes, onToggleListingType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
-  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial', 'midia'];
+  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
   const listingTypes: ListingType[] = ['venda', 'aluguel'];
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
-  const onlyMidia = activeTypes.length === 1 && activeTypes[0] === 'midia';
+  const onlyMidia = false;
 
   useEffect(() => {
     if (activeTypes.length !== 1 || activeTypes[0] !== 'casa') setShowHint(false);
@@ -149,7 +149,7 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
               onClick={() => onToggleListingType(lt)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
+                  ? 'bg-badge-midia text-white shadow-md'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
@@ -160,20 +160,19 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
         })}
       </div>
 
+      <div className="border-t border-border" />
+
       {/* Property type */}
       <div className="flex gap-2 flex-wrap">
         {types.map((type) => {
           const isActive = activeTypes.includes(type);
-          const isMidia = type === 'midia';
           return (
             <button
               key={type}
               onClick={() => onToggleType(type)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? isMidia
-                    ? 'bg-badge-midia text-white shadow-md'
-                    : 'bg-primary text-primary-foreground shadow-md'
+                  ? 'bg-primary text-primary-foreground shadow-md'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
