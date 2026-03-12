@@ -6,6 +6,7 @@ interface ImageCarouselProps {
   alt: string;
   className?: string;
   onOpenFullscreen?: (index: number) => void;
+  disableDrag?: boolean;
 }
 
 export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false }: ImageCarouselProps) {
