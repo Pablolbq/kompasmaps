@@ -71,11 +71,13 @@ export function mapDbProperty(row: {
   images: string[];
   description: string;
   media_type?: string | null;
+  listing_type?: string | null;
 }): Property {
   return {
     id: row.id,
     title: row.title,
     type: row.type as PropertyType,
+    listingType: (row.listing_type as ListingType) || 'venda',
     price: row.price,
     area: row.area,
     bedrooms: row.bedrooms ?? undefined,
