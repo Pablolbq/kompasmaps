@@ -173,6 +173,7 @@ function MarkerClusterLayer({
     }
 
     markersRef.current.clear();
+    globalMarkersRef.clear();
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
