@@ -448,6 +448,15 @@ export default function Admin() {
               </select>
             </div>
 
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Finalidade *</label>
+              <select className={inputClass} value={form.listingType} onChange={(e) => set('listingType', e.target.value)}>
+                {(['venda', 'aluguel'] as ListingType[]).map((t) => (
+                  <option key={t} value={t}>{listingTypeLabels[t]}</option>
+                ))}
+              </select>
+            </div>
+
             {form.type === 'midia' && (
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo de Mídia</label>
