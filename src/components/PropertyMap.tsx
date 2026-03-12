@@ -70,10 +70,17 @@ interface PropertyMapProps {
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
 }
 
+// Flag to prevent map click from closing popup right after marker click
+let markerJustClicked = false;
+
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
   useEffect(() => {
     const handler = () => {
+      if (markerJustClicked) {
+        markerJustClicked = false;
+        return;
+      }
       map.closePopup();
       onDeselect?.();
     };
