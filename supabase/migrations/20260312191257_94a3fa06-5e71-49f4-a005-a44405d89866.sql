@@ -1,0 +1,1 @@
+ALTER TABLE public.properties ADD COLUMN listing_type text NOT NULL DEFAULT 'venda';
