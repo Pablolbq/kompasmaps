@@ -70,10 +70,17 @@ interface PropertyMapProps {
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
 }
 
+// Flag to prevent map click from closing popup right after marker click
+let markerJustClicked = false;
+
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
   useEffect(() => {
     const handler = () => {
+      if (markerJustClicked) {
+        markerJustClicked = false;
+        return;
+      }
       map.closePopup();
       onDeselect?.();
     };
@@ -156,23 +163,13 @@ function MarkerClusterLayer({
         icon: createCustomIcon(property.type, false, false),
       });
 
-      marker.on('click', (e: L.LeafletMouseEvent) => {
-        if (e.originalEvent) {
-          L.DomEvent.stop(e.originalEvent);
-        }
-
-        if (!isMobile && marker.getPopup()) {
-          if (marker.isPopupOpen()) {
-            marker.closePopup();
-            openPopupId.current = null;
-            onSelect(property.id);
-            return;
-          }
-          marker.openPopup();
-        }
-
-        openPopupId.current = property.id;
+      // Click: select + manually open popup (bindPopup auto-open doesn't work with clusters)
+      marker.on('click', () => {
+        markerJustClicked = true;
         onSelect(property.id);
+        if (!isMobile && marker.getPopup()) {
+          setTimeout(() => marker.openPopup(), 10);
+        }
       });
 
       marker.on('popupclose', () => {
@@ -229,17 +226,23 @@ function MarkerClusterLayer({
   }, [properties, onSelect, onExpand, isMobile, map]);
 
   // Update icons when selection changes (without rebuilding cluster)
+  // Use setTimeout to avoid closing the popup that Leaflet just opened
   useEffect(() => {
-    const hasSelection = !!selectedId;
-    markersRef.current.forEach((marker, id) => {
-      const property = properties.find(p => p.id === id);
-      if (property) {
-        const isSelected = selectedId === id;
-        marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
-        if (isSelected) marker.setZIndexOffset(1000);
-        else marker.setZIndexOffset(0);
-      }
-    });
+    const timer = setTimeout(() => {
+      const hasSelection = !!selectedId;
+      markersRef.current.forEach((marker, id) => {
+        const property = properties.find(p => p.id === id);
+        if (property) {
+          const isSelected = selectedId === id;
+          // Don't update icon if popup is open (setIcon closes popup)
+          if (marker.isPopupOpen()) return;
+          marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
+          if (isSelected) marker.setZIndexOffset(1000);
+          else marker.setZIndexOffset(0);
+        }
+      });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [selectedId, properties]);
 
   return null;
