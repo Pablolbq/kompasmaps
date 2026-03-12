@@ -73,8 +73,10 @@ interface PropertyMapProps {
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
   useEffect(() => {
-    if (!onDeselect) return;
-    const handler = () => onDeselect();
+    const handler = () => {
+      map.closePopup();
+      onDeselect?.();
+    };
     map.on('click', handler);
     return () => { map.off('click', handler); };
   }, [map, onDeselect]);
@@ -156,7 +158,7 @@ function MarkerClusterLayer({
 
       marker.on('click', (e: L.LeafletMouseEvent) => {
         if (e.originalEvent) {
-          L.DomEvent.stopPropagation(e.originalEvent);
+          L.DomEvent.stop(e.originalEvent);
         }
 
         if (!isMobile && marker.getPopup()) {
@@ -208,7 +210,7 @@ function MarkerClusterLayer({
         if (titleEl && onExpand) {
           titleEl.addEventListener('click', () => onExpand(property.id));
         }
-        marker.bindPopup(popupContent, { autoClose: true });
+        marker.bindPopup(popupContent, { autoClose: true, closeOnClick: false });
       }
 
       markersRef.current.set(property.id, marker);
