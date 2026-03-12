@@ -272,10 +272,12 @@ function MarkerClusterLayer({
 
     map.addLayer(cluster);
     clusterRef.current = cluster;
+    globalClusterRef = cluster;
 
     return () => {
       if (clusterRef.current) {
         map.removeLayer(clusterRef.current);
+        if (globalClusterRef === clusterRef.current) globalClusterRef = null;
         clusterRef.current = null;
       }
     };
