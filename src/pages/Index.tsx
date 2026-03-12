@@ -106,6 +106,15 @@ const Index = () => {
     setMapBounds(bounds);
   }, []);
 
+  const focusMapProperty = useCallback((id: string) => {
+    if (mapRef.current) {
+      mapRef.current.focusProperty(id);
+      return;
+    }
+
+    setFocusPropertyId(id);
+  }, []);
+
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
