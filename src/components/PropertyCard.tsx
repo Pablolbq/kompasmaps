@@ -37,14 +37,17 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
           : 'border-border bg-card hover:border-primary/30'
       }`}
     >
-      <button onClick={onClick} className="w-full text-left">
-        <ImageCarousel images={property.images.slice(0, 1)} alt={property.title} className="w-full h-36" disableDrag showControls={false} />
-        <div className="relative -mt-6 ml-2.5">
+      <div className="relative">
+        <ImageCarousel images={property.images} alt={property.title} className="w-full h-36" />
+        <div className="absolute left-2.5 bottom-2.5">
           <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
             {propertyTypeLabels[property.type]}
           </span>
         </div>
-        <div className="p-3.5 pt-1.5">
+      </div>
+
+      <button onClick={onClick} className="w-full text-left">
+        <div className="p-3.5 pt-3">
           <h3 className="font-semibold text-sm text-card-foreground leading-tight line-clamp-1">
             {property.title}
           </h3>
@@ -99,3 +102,4 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
 PropertyCard.displayName = 'PropertyCard';
 
 export default PropertyCard;
+

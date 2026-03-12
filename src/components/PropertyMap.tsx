@@ -23,12 +23,10 @@ const typeSvgIcons: Record<string, string> = {
   midia: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>`,
 };
 
-function createCustomIcon(type: string, isSelected: boolean, hasSelection: boolean) {
+function createCustomIcon(type: string) {
   const color = typeColors[type] || '#1a9a8a';
-  const dimmed = hasSelection && !isSelected;
   const size = 36;
-  const opacity = dimmed ? '0.7' : '1';
-  const filter = dimmed ? 'grayscale(30%)' : 'none';
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -43,8 +41,6 @@ function createCustomIcon(type: string, isSelected: boolean, hasSelection: boole
         justify-content: center;
         box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         border: 3px solid white;
-        opacity: ${opacity};
-        filter: ${filter};
         transition: all 0.25s;
       ">
         <span style="transform: rotate(45deg); display:flex; align-items:center; justify-content:center;">${typeSvgIcons[type] || ''}</span>
@@ -70,48 +66,58 @@ interface PropertyMapProps {
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
 }
 
-// Flag to prevent map click from closing popup right after marker click
 let markerJustClicked = false;
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
+
   useEffect(() => {
     const handler = () => {
       if (markerJustClicked) {
         markerJustClicked = false;
         return;
       }
+
       map.closePopup();
       onDeselect?.();
     };
+
     map.on('click', handler);
-    return () => { map.off('click', handler); };
+    return () => {
+      map.off('click', handler);
+    };
   }, [map, onDeselect]);
+
   return null;
 }
 
 function BoundsReporter({ onBoundsChange }: { onBoundsChange?: (bounds: L.LatLngBounds) => void }) {
   const map = useMap();
+
   useEffect(() => {
     if (!onBoundsChange) return;
+
     const report = () => onBoundsChange(map.getBounds());
     map.on('moveend', report);
     map.on('zoomend', report);
-    // Initial report
     report();
+
     return () => {
       map.off('moveend', report);
       map.off('zoomend', report);
     };
   }, [map, onBoundsChange]);
+
   return null;
 }
 
 function MarkerClusterLayer({
-  properties, selectedId, onSelect, onExpand, isMobile
+  properties,
+  onSelect,
+  onExpand,
+  isMobile,
 }: {
   properties: Property[];
-  selectedId: string | null;
   onSelect: (id: string) => void;
   onExpand?: (id: string) => void;
   isMobile: boolean;
@@ -120,17 +126,16 @@ function MarkerClusterLayer({
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const prevPropsRef = useRef<string>('');
-  const openPopupId = useRef<string | null>(null);
 
-  // Rebuild cluster only when properties change
   useEffect(() => {
-    const key = properties.map(p => p.id).join(',');
+    const key = properties.map((p) => p.id).join(',');
     if (key === prevPropsRef.current && clusterRef.current) return;
     prevPropsRef.current = key;
 
     if (clusterRef.current) {
       map.removeLayer(clusterRef.current);
     }
+
     markersRef.current.clear();
 
     const cluster = (L as any).markerClusterGroup({
@@ -143,6 +148,7 @@ function MarkerClusterLayer({
         let size = 'small';
         if (count >= 10) size = 'medium';
         if (count >= 50) size = 'large';
+
         return L.divIcon({
           html: `<div class="cluster-icon cluster-${size}"><span>${count}</span></div>`,
           className: 'custom-cluster',
@@ -160,22 +166,21 @@ function MarkerClusterLayer({
 
     properties.forEach((property) => {
       const marker = L.marker([property.lat, property.lng], {
-        icon: createCustomIcon(property.type, false, false),
+        icon: createCustomIcon(property.type),
       });
 
-      // Click: select + manually open popup (bindPopup auto-open doesn't work with clusters)
-      marker.on('click', () => {
+      marker.on('click', (event: any) => {
         markerJustClicked = true;
-        onSelect(property.id);
-        if (!isMobile && marker.getPopup()) {
-          setTimeout(() => marker.openPopup(), 10);
+        if (event?.originalEvent) {
+          L.DomEvent.stop(event.originalEvent);
         }
-      });
 
-      marker.on('popupclose', () => {
-        if (openPopupId.current === property.id) {
-          openPopupId.current = null;
+        if (!isMobile && marker.getPopup()) {
+          setTimeout(() => marker.openPopup(), 0);
+          return;
         }
+
+        onSelect(property.id);
       });
 
       if (!isMobile) {
@@ -187,7 +192,7 @@ function MarkerClusterLayer({
             <span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-bottom:6px;background:${typeColors[property.type]}18;color:${typeColors[property.type]};">
               ${propertyTypeLabels[property.type]}
             </span>
-            <h3 class="popup-title" style="font-weight:700;font-size:13px;line-height:1.3;cursor:pointer;margin:4px 0 2px;">${property.title}</h3>
+            <h3 class="popup-open-detail" style="font-weight:700;font-size:13px;line-height:1.3;cursor:pointer;margin:4px 0 2px;">${property.title}</h3>
             <p style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;">📍 ${property.neighborhood}</p>
             <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:11px;color:#666;">
               <span>📐 ${property.area}m²</span>
@@ -196,17 +201,30 @@ function MarkerClusterLayer({
               ${!isMidia && property.garageSpaces ? `<span>🚗 ${property.garageSpaces}</span>` : ''}
               ${isMidia && property.mediaType ? `<span>${mediaTypeLabels[property.mediaType]}</span>` : ''}
             </div>
-            <p style="font-weight:700;color:hsl(20,70%,48%);margin-top:8px;font-size:15px;">${formatPrice(property.price)}</p>
+            <p class="popup-open-detail" style="font-weight:700;color:hsl(20,70%,48%);margin-top:8px;font-size:15px;cursor:pointer;">${formatPrice(property.price)}</p>
+            <button class="popup-open-detail" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;background:hsl(20,70%,48%);color:white;border:none;cursor:pointer;margin-top:4px;">Ver detalhes</button>
             <a href="${getWhatsAppLink(property)}" target="_blank" rel="noopener noreferrer"
               style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;background:#25D366;color:white;text-decoration:none;margin-top:8px;">
               💬 WhatsApp
             </a>
           </div>
         `;
-        const titleEl = popupContent.querySelector('.popup-title');
-        if (titleEl && onExpand) {
-          titleEl.addEventListener('click', () => onExpand(property.id));
-        }
+
+        popupContent.addEventListener('click', (domEvent) => {
+          domEvent.stopPropagation();
+        });
+
+        const openDetailTargets = popupContent.querySelectorAll('.popup-open-detail');
+        openDetailTargets.forEach((el) => {
+          el.addEventListener('click', (domEvent) => {
+            domEvent.preventDefault();
+            domEvent.stopPropagation();
+            markerJustClicked = true;
+            onSelect(property.id);
+            onExpand?.(property.id);
+          });
+        });
+
         marker.bindPopup(popupContent, { autoClose: true, closeOnClick: false });
       }
 
@@ -225,54 +243,28 @@ function MarkerClusterLayer({
     };
   }, [properties, onSelect, onExpand, isMobile, map]);
 
-  // Update icons when selection changes (without rebuilding cluster)
-  // Use setTimeout to avoid closing the popup that Leaflet just opened
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const hasSelection = !!selectedId;
-      markersRef.current.forEach((marker, id) => {
-        const property = properties.find(p => p.id === id);
-        if (property) {
-          const isSelected = selectedId === id;
-          // Don't update icon if popup is open (setIcon closes popup)
-          if (marker.isPopupOpen()) return;
-          marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
-          if (isSelected) marker.setZIndexOffset(1000);
-          else marker.setZIndexOffset(0);
-        }
-      });
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [selectedId, properties]);
-
   return null;
 }
 
-function getPropertyImage_fn(property: Property): string {
-  return property.images[0] ?? '/placeholder.svg';
-}
-
-export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, onExpand, isMobile = false, onBoundsChange }: PropertyMapProps) {
+export default function PropertyMap({
+  properties,
+  selectedId: _selectedId,
+  onSelect,
+  onDeselect,
+  onExpand,
+  isMobile = false,
+  onBoundsChange,
+}: PropertyMapProps) {
   return (
-    <MapContainer
-      center={[-25.0945, -50.1633]}
-      zoom={13}
-      className="h-full w-full"
-      zoomControl={false}
-    >
+    <MapContainer center={[-25.0945, -50.1633]} zoom={13} className="h-full w-full" zoomControl={false}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapClickHandler onDeselect={onDeselect} />
       <BoundsReporter onBoundsChange={onBoundsChange} />
-      <MarkerClusterLayer
-        properties={properties}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        onExpand={onExpand}
-        isMobile={isMobile}
-      />
+      <MarkerClusterLayer properties={properties} onSelect={onSelect} onExpand={onExpand} isMobile={isMobile} />
     </MapContainer>
   );
 }
+
