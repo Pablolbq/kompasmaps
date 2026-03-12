@@ -126,7 +126,7 @@ function MarkerClusterLayer({
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
-      spiderfyOnMaxZoom: false,
+      spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       iconCreateFunction: (c: any) => {
@@ -143,18 +143,9 @@ function MarkerClusterLayer({
     });
 
     cluster.on('clusterclick', (event: any) => {
-      const maxZoom = map.getMaxZoom();
-      const maxZoomThreshold = Number.isFinite(maxZoom) ? maxZoom - 1 : 17;
-      const isAtMax = map.getZoom() >= maxZoomThreshold;
-      if (!isAtMax) return;
-
-      if (event.originalEvent) {
+      const spiderfiedCluster = (cluster as any)._spiderfied;
+      if (spiderfiedCluster && event.layer === spiderfiedCluster && event.originalEvent) {
         L.DomEvent.stop(event.originalEvent);
-      }
-
-      const isAlreadySpiderfied = (cluster as any)._spiderfied === event.layer;
-      if (!isAlreadySpiderfied && event.layer?.spiderfy) {
-        event.layer.spiderfy();
       }
     });
 
@@ -165,20 +156,21 @@ function MarkerClusterLayer({
 
       marker.on('click', (e: L.LeafletMouseEvent) => {
         if (e.originalEvent) {
-          L.DomEvent.stop(e.originalEvent);
+          L.DomEvent.stopPropagation(e.originalEvent);
         }
 
-        if (openPopupId.current === property.id) {
-          marker.closePopup();
-          openPopupId.current = null;
-          onSelect(property.id);
-        } else {
-          openPopupId.current = property.id;
-          onSelect(property.id);
-          if (!isMobile && marker.getPopup()) {
-            marker.openPopup();
+        if (!isMobile && marker.getPopup()) {
+          if (marker.isPopupOpen()) {
+            marker.closePopup();
+            openPopupId.current = null;
+            onSelect(property.id);
+            return;
           }
+          marker.openPopup();
         }
+
+        openPopupId.current = property.id;
+        onSelect(property.id);
       });
 
       marker.on('popupclose', () => {

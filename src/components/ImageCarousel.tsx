@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 
 interface ImageCarouselProps {
@@ -172,11 +172,30 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
   const touchDelta = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
 
+  const mouseStartX = useRef<number | null>(null);
+  const mouseDelta = useRef(0);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+      if (event.key === 'ArrowRight' && current < total - 1) setCurrent((c) => c + 1);
+      if (event.key === 'ArrowLeft' && current > 0) setCurrent((c) => c - 1);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose, current, total]);
+
+  const finishDrag = (delta: number) => {
+    if (Math.abs(delta) > 60) {
+      if (delta < 0 && current < total - 1) setCurrent((c) => c + 1);
+      else if (delta > 0 && current > 0) setCurrent((c) => c - 1);
+    }
+    setDragOffset(0);
+  };
+
   return (
-    <div
-      className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
@@ -190,8 +209,10 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
 
       <div
         className="w-full h-full flex items-center justify-center select-none"
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; touchDelta.current = 0; }}
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches[0].clientX;
+          touchDelta.current = 0;
+        }}
         onTouchMove={(e) => {
           if (touchStartX.current === null) return;
           const d = e.touches[0].clientX - touchStartX.current;
@@ -199,12 +220,31 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
           setDragOffset(d);
         }}
         onTouchEnd={() => {
-          if (Math.abs(touchDelta.current) > 60) {
-            if (touchDelta.current < 0 && current < total - 1) setCurrent(c => c + 1);
-            else if (touchDelta.current > 0 && current > 0) setCurrent(c => c - 1);
-          }
-          setDragOffset(0);
+          finishDrag(touchDelta.current);
           touchStartX.current = null;
+          touchDelta.current = 0;
+        }}
+        onMouseDown={(e) => {
+          mouseStartX.current = e.clientX;
+          mouseDelta.current = 0;
+        }}
+        onMouseMove={(e) => {
+          if (mouseStartX.current === null) return;
+          const d = e.clientX - mouseStartX.current;
+          mouseDelta.current = d;
+          setDragOffset(d);
+        }}
+        onMouseUp={() => {
+          if (mouseStartX.current === null) return;
+          finishDrag(mouseDelta.current);
+          mouseStartX.current = null;
+          mouseDelta.current = 0;
+        }}
+        onMouseLeave={() => {
+          if (mouseStartX.current === null) return;
+          finishDrag(mouseDelta.current);
+          mouseStartX.current = null;
+          mouseDelta.current = 0;
         }}
       >
         <img
@@ -222,13 +262,19 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
       {total > 1 && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c - 1 + total) % total); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (current > 0) setCurrent((c) => c - 1);
+            }}
             className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
           >
             <ChevronLeft size={20} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c + 1) % total); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (current < total - 1) setCurrent((c) => c + 1);
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
           >
             <ChevronRight size={20} />
