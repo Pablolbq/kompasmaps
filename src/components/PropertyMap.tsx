@@ -163,10 +163,13 @@ function MarkerClusterLayer({
         icon: createCustomIcon(property.type, false, false),
       });
 
-      // Simple click: select + let Leaflet handle popup natively
+      // Click: select + manually open popup (bindPopup auto-open doesn't work with clusters)
       marker.on('click', () => {
         markerJustClicked = true;
         onSelect(property.id);
+        if (!isMobile && marker.getPopup()) {
+          setTimeout(() => marker.openPopup(), 10);
+        }
       });
 
       marker.on('popupclose', () => {
