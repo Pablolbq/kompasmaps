@@ -242,6 +242,7 @@ export default function Admin() {
     const payload = {
       title: form.title,
       type: form.type,
+      listing_type: form.listingType,
       price: Number(form.price),
       area: Number(form.area),
       bedrooms: !isMidia && form.bedrooms ? Number(form.bedrooms) : null,
