@@ -66,9 +66,18 @@ interface PropertyMapProps {
   onExpand?: (id: string) => void;
   isMobile?: boolean;
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
+  focusPropertyId?: string | null;
+  onFocusDone?: () => void;
+}
+
+export interface PropertyMapHandle {
+  focusProperty: (id: string) => void;
 }
 
 let markerJustClicked = false;
+
+// Global registry so FocusHandler can access markers
+let globalMarkersRef: Map<string, L.Marker> = new Map();
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
