@@ -166,16 +166,13 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
       <div className="flex gap-2 flex-wrap">
         {types.map((type) => {
           const isActive = activeTypes.includes(type);
-          const isMidia = type === 'midia';
           return (
             <button
               key={type}
               onClick={() => onToggleType(type)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? isMidia
-                    ? 'bg-badge-midia text-white shadow-md'
-                    : 'bg-primary text-primary-foreground shadow-md'
+                  ? 'bg-primary text-primary-foreground shadow-md'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
