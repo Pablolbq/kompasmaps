@@ -582,6 +582,39 @@ export default function Admin() {
           </form>
         </div>
       )}
+
+      {/* Import XML Modal */}
+      {showImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !importing && setShowImport(false)}>
+          <div className="w-full max-w-md bg-card rounded-2xl border border-border shadow-xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-foreground">Importar XML</h2>
+            <p className="text-xs text-muted-foreground">Cole a URL do feed XML de imóveis para importar automaticamente.</p>
+            <input
+              className={inputClass}
+              value={xmlUrl}
+              onChange={(e) => setXmlUrl(e.target.value)}
+              placeholder="https://exemplo.com.br/integracao/feed.xml"
+              disabled={importing}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowImport(false)}
+                disabled={importing}
+                className="px-4 py-2 rounded-lg bg-secondary text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleImportXml}
+                disabled={importing || !xmlUrl.trim()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+              >
+                {importing ? <><Loader2 size={14} className="animate-spin" /> Importando...</> : <><Upload size={14} /> Importar</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
