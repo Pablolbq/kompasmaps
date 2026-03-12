@@ -1,16 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface ImageCarouselProps {
   images: string[];
   alt: string;
   className?: string;
   onOpenFullscreen?: (index: number) => void;
+  onClickCenter?: (index: number) => void;
   disableDrag?: boolean;
   showControls?: boolean;
+  hideZoom?: boolean;
 }
 
-export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false, showControls = true }: ImageCarouselProps) {
+export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, onClickCenter, disableDrag = false, showControls = true, hideZoom = false }: ImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const total = images.length;
   const [dragOffset, setDragOffset] = useState(0);
@@ -47,11 +49,14 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
     if (Math.abs(delta) > 40) {
       if (delta < 0) goTo(current + 1);
       else goTo(current - 1);
+    } else if (!dragging.current && onClickCenter) {
+      // It was a tap/click, not a drag
+      onClickCenter(current);
     }
 
     setDragOffset(0);
     setTimeout(() => { dragging.current = false; }, 60);
-  }, [dragOffset, current, goTo]);
+  }, [dragOffset, current, goTo, onClickCenter]);
 
   if (total === 0) return null;
 
@@ -89,12 +94,12 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
         ))}
       </div>
 
-      {showControls && onOpenFullscreen && (
+      {showControls && !hideZoom && onOpenFullscreen && (
         <button
           onClick={(e) => { e.stopPropagation(); if (!dragging.current) onOpenFullscreen(current); }}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity z-10"
         >
-          <ZoomIn size={14} />
+          <ChevronRight size={14} />
         </button>
       )}
 

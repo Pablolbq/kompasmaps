@@ -47,13 +47,15 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
           }
         }}
       >
-        <DialogContent className="max-w-xl p-0 overflow-hidden max-h-[85vh]">
+        <DialogContent className="max-w-xl p-0 overflow-hidden max-h-[85vh] [&>button.absolute]:hidden">
           <DialogTitle className="sr-only">{property.title}</DialogTitle>
           <div className="overflow-y-auto max-h-[85vh]">
             <ImageCarousel
               images={property.images}
               alt={property.title}
-              className="w-full h-48 md:h-56"
+              className="w-full h-48 md:h-56 cursor-pointer"
+              hideZoom
+              onClickCenter={(i) => setLightboxIndex(i)}
               onOpenFullscreen={(i) => setLightboxIndex(i)}
             />
 
