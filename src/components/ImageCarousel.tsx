@@ -49,11 +49,14 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
     if (Math.abs(delta) > 40) {
       if (delta < 0) goTo(current + 1);
       else goTo(current - 1);
+    } else if (!dragging.current && onClickCenter) {
+      // It was a tap/click, not a drag
+      onClickCenter(current);
     }
 
     setDragOffset(0);
     setTimeout(() => { dragging.current = false; }, 60);
-  }, [dragOffset, current, goTo]);
+  }, [dragOffset, current, goTo, onClickCenter]);
 
   if (total === 0) return null;
 
