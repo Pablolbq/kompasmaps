@@ -76,8 +76,33 @@ export interface PropertyMapHandle {
 
 let markerJustClicked = false;
 
-// Global registry so FocusHandler can access markers
+// Global registries so focus handlers can open popup reliably even inside clusters
 let globalMarkersRef: Map<string, L.Marker> = new Map();
+let globalClusterRef: L.MarkerClusterGroup | null = null;
+
+function openPropertyPopup(id: string, map: L.Map) {
+  const marker = globalMarkersRef.get(id);
+  if (!marker || !marker.getPopup()) return;
+
+  const openNow = () => {
+    markerJustClicked = true;
+    marker.openPopup();
+  };
+
+  if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === 'function') {
+    try {
+      (globalClusterRef as any).zoomToShowLayer(marker, () => {
+        map.panTo(marker.getLatLng(), { animate: true });
+        setTimeout(openNow, 80);
+      });
+      return;
+    } catch {
+      // fallback below
+    }
+  }
+
+  setTimeout(openNow, 120);
+}
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
