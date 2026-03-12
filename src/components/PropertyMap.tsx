@@ -295,14 +295,7 @@ function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPrope
     if (!property) return;
 
     map.setView([property.lat, property.lng], 16, { animate: true });
-
-    const marker = globalMarkersRef.get(focusPropertyId);
-    if (marker?.getPopup()) {
-      setTimeout(() => {
-        markerJustClicked = true;
-        marker.openPopup();
-      }, 400);
-    }
+    openPropertyPopup(focusPropertyId, map);
 
     onFocusDone?.();
   }, [focusPropertyId, properties, map, onFocusDone]);
