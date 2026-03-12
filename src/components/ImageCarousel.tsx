@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 
 interface ImageCarouselProps {
@@ -13,103 +13,81 @@ interface ImageCarouselProps {
 export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false, showControls = true }: ImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const total = images.length;
-
-  // Touch/drag state
-  const touchStartX = useRef<number | null>(null);
-  const touchDeltaX = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
-  const isDragging = useRef(false);
+  const dragging = useRef(false);
+  const startX = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const prev = (e?: React.MouseEvent) => {
+  const goTo = useCallback((index: number) => {
+    setCurrent(Math.max(0, Math.min(total - 1, index)));
+  }, [total]);
+
+  const prev = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrent((c) => (c - 1 + total) % total);
-  };
+    e?.preventDefault();
+    goTo(current - 1);
+  }, [current, goTo]);
 
-  const next = (e?: React.MouseEvent) => {
+  const next = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrent((c) => (c + 1) % total);
-  };
+    e?.preventDefault();
+    goTo(current + 1);
+  }, [current, goTo]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchDeltaX.current = 0;
-    isDragging.current = false;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const delta = e.touches[0].clientX - touchStartX.current;
-    touchDeltaX.current = delta;
-    isDragging.current = Math.abs(delta) > 5;
-    setDragOffset(delta);
-  };
-
-  const handleTouchEnd = () => {
-    const delta = touchDeltaX.current;
-    if (Math.abs(delta) > 50) {
-      if (delta < 0 && current < total - 1) setCurrent(c => c + 1);
-      else if (delta > 0 && current > 0) setCurrent(c => c - 1);
-    }
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (disableDrag) return;
+    dragging.current = false;
+    startX.current = e.clientX;
     setDragOffset(0);
-    touchStartX.current = null;
-    touchDeltaX.current = 0;
-    setTimeout(() => { isDragging.current = false; }, 50);
-  };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, [disableDrag]);
 
-  // Mouse drag
-  const mouseStartX = useRef<number | null>(null);
-  const mouseDelta = useRef(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    mouseStartX.current = e.clientX;
-    mouseDelta.current = 0;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (mouseStartX.current === null) return;
-    const delta = e.clientX - mouseStartX.current;
-    mouseDelta.current = delta;
-    isDragging.current = Math.abs(delta) > 5;
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (disableDrag || startX.current === 0) return;
+    const delta = e.clientX - startX.current;
+    if (Math.abs(delta) > 5) dragging.current = true;
     setDragOffset(delta);
-  };
+  }, [disableDrag]);
 
-  const handleMouseUp = () => {
-    if (mouseStartX.current === null) return;
-    const delta = mouseDelta.current;
-    if (Math.abs(delta) > 50) {
-      if (delta < 0 && current < total - 1) setCurrent(c => c + 1);
-      else if (delta > 0 && current > 0) setCurrent(c => c - 1);
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    if (disableDrag) return;
+    const delta = e.clientX - startX.current;
+    startX.current = 0;
+
+    if (Math.abs(delta) > 40) {
+      if (delta < 0) goTo(current + 1);
+      else goTo(current - 1);
     }
+
     setDragOffset(0);
-    mouseStartX.current = null;
-    mouseDelta.current = 0;
-    setTimeout(() => { isDragging.current = false; }, 50);
-  };
+    setTimeout(() => { dragging.current = false; }, 60);
+  }, [disableDrag, current, goTo]);
 
   if (total === 0) return null;
 
+  const slidePercent = 100 / total;
+  const translateX = -(current * slidePercent);
+
   return (
     <div
+      ref={containerRef}
       className={`relative overflow-hidden group/carousel select-none ${className}`}
-      onTouchStart={disableDrag ? undefined : handleTouchStart}
-      onTouchMove={disableDrag ? undefined : handleTouchMove}
-      onTouchEnd={disableDrag ? undefined : handleTouchEnd}
-      onMouseDown={disableDrag ? undefined : handleMouseDown}
-      onMouseMove={disableDrag ? undefined : handleMouseMove}
-      onMouseUp={disableDrag ? undefined : handleMouseUp}
-      onMouseLeave={disableDrag ? undefined : () => { if (mouseStartX.current !== null) handleMouseUp(); }}
-      style={{ cursor: disableDrag ? 'pointer' : isDragging.current ? 'grabbing' : 'grab' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ cursor: disableDrag ? 'pointer' : dragging.current ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
     >
       <div
         className="flex h-full"
         style={{
-          transform: `translateX(calc(-${current * 100}% + ${dragOffset}px))`,
-          transition: dragOffset !== 0 ? 'none' : 'transform 0.3s ease-out',
           width: `${total * 100}%`,
+          transform: `translateX(calc(${translateX}% + ${dragOffset}px))`,
+          transition: dragOffset !== 0 ? 'none' : 'transform 0.3s ease-out',
         }}
       >
         {images.map((src, i) => (
-          <div key={i} className="h-full flex-shrink-0" style={{ width: `${100 / total}%` }}>
+          <div key={i} className="h-full flex-shrink-0" style={{ width: `${slidePercent}%` }}>
             <img
               src={src}
               alt={`${alt} - foto ${i + 1}`}
@@ -121,10 +99,9 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
         ))}
       </div>
 
-      {/* Fullscreen button */}
       {showControls && onOpenFullscreen && (
         <button
-          onClick={(e) => { e.stopPropagation(); if (!isDragging.current) onOpenFullscreen(current); }}
+          onClick={(e) => { e.stopPropagation(); if (!dragging.current) onOpenFullscreen(current); }}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity z-10"
         >
           <ZoomIn size={14} />
@@ -134,26 +111,27 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
       {showControls && total > 1 && (
         <>
           <button
-            onClick={(e) => { if (!isDragging.current) prev(e); else e.stopPropagation(); }}
-            className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity z-10"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={prev}
+            className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center bg-black/0 hover:bg-black/20 text-white opacity-0 group-hover/carousel:opacity-100 transition-all z-10"
           >
-            <ChevronLeft size={14} />
+            <ChevronLeft size={18} />
           </button>
           <button
-            onClick={(e) => { if (!isDragging.current) next(e); else e.stopPropagation(); }}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity z-10"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={next}
+            className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center bg-black/0 hover:bg-black/20 text-white opacity-0 group-hover/carousel:opacity-100 transition-all z-10"
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={18} />
           </button>
 
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
             {images.map((_, i) => (
               <button
                 key={i}
-                onClick={(e) => { e.stopPropagation(); if (!isDragging.current) setCurrent(i); }}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  i === current ? 'bg-white w-3' : 'bg-white/50'
-                }`}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-white w-3' : 'bg-white/50'}`}
               />
             ))}
           </div>
@@ -167,32 +145,53 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
 export function ImageLightbox({ images, startIndex, onClose }: { images: string[]; startIndex: number; onClose: () => void }) {
   const [current, setCurrent] = useState(startIndex);
   const total = images.length;
-
-  const touchStartX = useRef<number | null>(null);
-  const touchDelta = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
+  const startX = useRef(0);
 
-  const mouseStartX = useRef<number | null>(null);
-  const mouseDelta = useRef(0);
+  const goTo = useCallback((i: number) => setCurrent(Math.max(0, Math.min(total - 1, i))), [total]);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-      if (event.key === 'ArrowRight' && current < total - 1) setCurrent((c) => c + 1);
-      if (event.key === 'ArrowLeft' && current > 0) setCurrent((c) => c - 1);
-    };
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    startX.current = e.clientX;
+    setDragOffset(0);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose, current, total]);
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (startX.current === 0) return;
+    setDragOffset(e.clientX - startX.current);
+  }, []);
 
-  const finishDrag = (delta: number) => {
+  const onPointerUp = useCallback(() => {
+    const delta = dragOffset;
+    startX.current = 0;
     if (Math.abs(delta) > 60) {
-      if (delta < 0 && current < total - 1) setCurrent((c) => c + 1);
-      else if (delta > 0 && current > 0) setCurrent((c) => c - 1);
+      if (delta < 0) goTo(current + 1);
+      else goTo(current - 1);
     }
     setDragOffset(0);
-  };
+  }, [dragOffset, current, goTo]);
+
+  // Keyboard
+  const onKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+    if (e.key === 'ArrowRight') goTo(current + 1);
+    if (e.key === 'ArrowLeft') goTo(current - 1);
+  }, [onClose, current, goTo]);
+
+  useState(() => {
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
+
+  // Keep keyboard handler up to date
+  const keyRef = useRef(onKeyDown);
+  keyRef.current = onKeyDown;
+
+  useState(() => {
+    const handler = (e: KeyboardEvent) => keyRef.current(e);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
@@ -209,43 +208,11 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
 
       <div
         className="w-full h-full flex items-center justify-center select-none"
-        onTouchStart={(e) => {
-          touchStartX.current = e.touches[0].clientX;
-          touchDelta.current = 0;
-        }}
-        onTouchMove={(e) => {
-          if (touchStartX.current === null) return;
-          const d = e.touches[0].clientX - touchStartX.current;
-          touchDelta.current = d;
-          setDragOffset(d);
-        }}
-        onTouchEnd={() => {
-          finishDrag(touchDelta.current);
-          touchStartX.current = null;
-          touchDelta.current = 0;
-        }}
-        onMouseDown={(e) => {
-          mouseStartX.current = e.clientX;
-          mouseDelta.current = 0;
-        }}
-        onMouseMove={(e) => {
-          if (mouseStartX.current === null) return;
-          const d = e.clientX - mouseStartX.current;
-          mouseDelta.current = d;
-          setDragOffset(d);
-        }}
-        onMouseUp={() => {
-          if (mouseStartX.current === null) return;
-          finishDrag(mouseDelta.current);
-          mouseStartX.current = null;
-          mouseDelta.current = 0;
-        }}
-        onMouseLeave={() => {
-          if (mouseStartX.current === null) return;
-          finishDrag(mouseDelta.current);
-          mouseStartX.current = null;
-          mouseDelta.current = 0;
-        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        style={{ touchAction: 'pan-y' }}
       >
         <img
           src={images[current]}
@@ -262,22 +229,16 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
       {total > 1 && (
         <>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (current > 0) setCurrent((c) => c - 1);
-            }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
+            onClick={(e) => { e.stopPropagation(); goTo(current - 1); }}
+            className="absolute left-0 top-0 bottom-0 w-16 flex items-center justify-center bg-black/0 hover:bg-white/10 text-white z-10"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={24} />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (current < total - 1) setCurrent((c) => c + 1);
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
+            onClick={(e) => { e.stopPropagation(); goTo(current + 1); }}
+            className="absolute right-0 top-0 bottom-0 w-16 flex items-center justify-center bg-black/0 hover:bg-white/10 text-white z-10"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={24} />
           </button>
         </>
       )}
