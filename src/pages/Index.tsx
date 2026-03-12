@@ -361,20 +361,20 @@ const Index = () => {
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}
-        onClose={() => {
-          const closingId = detailProperty;
-          setDetailProperty(null);
-          // Reopen popup on map for the property that was being viewed
-          if (closingId) {
-            setTimeout(() => {
-              mapRef.current?.focusProperty(closingId);
-            }, 100);
-          }
-        }}
-        onViewOnMap={(id) => {
-          setDetailProperty(null);
-          setFocusPropertyId(id);
-        }}
+         onClose={() => {
+           const closingId = detailProperty;
+           setDetailProperty(null);
+
+           if (closingId) {
+             setTimeout(() => {
+               focusMapProperty(closingId);
+             }, 80);
+           }
+         }}
+         onViewOnMap={(id) => {
+           setDetailProperty(null);
+           focusMapProperty(id);
+         }}
       />
     </div>
   );
