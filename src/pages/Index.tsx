@@ -329,12 +329,15 @@ const Index = () => {
 
         <main className="flex flex-1 relative">
           <PropertyMap
+            ref={mapRef}
             properties={filteredProperties}
             selectedId={selectedId}
             onSelect={handleSelect}
             onDeselect={() => setSelectedId(null)}
             onExpand={(id) => setDetailProperty(id)}
             onBoundsChange={handleBoundsChange}
+            focusPropertyId={focusPropertyId}
+            onFocusDone={() => setFocusPropertyId(null)}
           />
         </main>
       </div>
@@ -342,7 +345,20 @@ const Index = () => {
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}
-        onClose={() => setDetailProperty(null)}
+        onClose={() => {
+          const closingId = detailProperty;
+          setDetailProperty(null);
+          // Reopen popup on map for the property that was being viewed
+          if (closingId) {
+            setTimeout(() => {
+              mapRef.current?.focusProperty(closingId);
+            }, 100);
+          }
+        }}
+        onViewOnMap={(id) => {
+          setDetailProperty(null);
+          setFocusPropertyId(id);
+        }}
       />
     </div>
   );
