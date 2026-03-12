@@ -258,7 +258,31 @@ function MarkerClusterLayer({
   return null;
 }
 
-export default function PropertyMap({
+function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPropertyId?: string | null; properties: Property[]; onFocusDone?: () => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focusPropertyId) return;
+    const property = properties.find(p => p.id === focusPropertyId);
+    if (!property) return;
+
+    map.setView([property.lat, property.lng], 16, { animate: true });
+
+    const marker = globalMarkersRef.get(focusPropertyId);
+    if (marker?.getPopup()) {
+      setTimeout(() => {
+        markerJustClicked = true;
+        marker.openPopup();
+      }, 400);
+    }
+
+    onFocusDone?.();
+  }, [focusPropertyId, properties, map, onFocusDone]);
+
+  return null;
+}
+
+const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function PropertyMap({
   properties,
   selectedId: _selectedId,
   onSelect,
@@ -266,9 +290,34 @@ export default function PropertyMap({
   onExpand,
   isMobile = false,
   onBoundsChange,
-}: PropertyMapProps) {
+  focusPropertyId,
+  onFocusDone,
+}, ref) {
+  const mapRef = useRef<L.Map | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusProperty: (id: string) => {
+      const property = properties.find(p => p.id === id);
+      if (!property || !mapRef.current) return;
+      mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
+      const marker = globalMarkersRef.get(id);
+      if (marker?.getPopup()) {
+        setTimeout(() => {
+          markerJustClicked = true;
+          marker.openPopup();
+        }, 400);
+      }
+    },
+  }), [properties]);
+
   return (
-    <MapContainer center={[-25.0945, -50.1633]} zoom={13} className="h-full w-full" zoomControl={false}>
+    <MapContainer
+      center={[-25.0945, -50.1633]}
+      zoom={13}
+      className="h-full w-full"
+      zoomControl={false}
+      ref={mapRef}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -276,7 +325,9 @@ export default function PropertyMap({
       <MapClickHandler onDeselect={onDeselect} />
       <BoundsReporter onBoundsChange={onBoundsChange} />
       <MarkerClusterLayer properties={properties} onSelect={onSelect} onExpand={onExpand} isMobile={isMobile} />
+      <FocusHandler focusPropertyId={focusPropertyId} properties={properties} onFocusDone={onFocusDone} />
     </MapContainer>
   );
-}
+});
 
+export default PropertyMap;
