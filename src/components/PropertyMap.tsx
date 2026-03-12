@@ -76,8 +76,33 @@ export interface PropertyMapHandle {
 
 let markerJustClicked = false;
 
-// Global registry so FocusHandler can access markers
+// Global registries so focus handlers can open popup reliably even inside clusters
 let globalMarkersRef: Map<string, L.Marker> = new Map();
+let globalClusterRef: L.MarkerClusterGroup | null = null;
+
+function openPropertyPopup(id: string, map: L.Map) {
+  const marker = globalMarkersRef.get(id);
+  if (!marker || !marker.getPopup()) return;
+
+  const openNow = () => {
+    markerJustClicked = true;
+    marker.openPopup();
+  };
+
+  if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === 'function') {
+    try {
+      (globalClusterRef as any).zoomToShowLayer(marker, () => {
+        map.panTo(marker.getLatLng(), { animate: true });
+        setTimeout(openNow, 80);
+      });
+      return;
+    } catch {
+      // fallback below
+    }
+  }
+
+  setTimeout(openNow, 120);
+}
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
@@ -148,6 +173,7 @@ function MarkerClusterLayer({
     }
 
     markersRef.current.clear();
+    globalMarkersRef.clear();
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
@@ -246,10 +272,12 @@ function MarkerClusterLayer({
 
     map.addLayer(cluster);
     clusterRef.current = cluster;
+    globalClusterRef = cluster;
 
     return () => {
       if (clusterRef.current) {
         map.removeLayer(clusterRef.current);
+        if (globalClusterRef === clusterRef.current) globalClusterRef = null;
         clusterRef.current = null;
       }
     };
@@ -267,14 +295,7 @@ function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPrope
     if (!property) return;
 
     map.setView([property.lat, property.lng], 16, { animate: true });
-
-    const marker = globalMarkersRef.get(focusPropertyId);
-    if (marker?.getPopup()) {
-      setTimeout(() => {
-        markerJustClicked = true;
-        marker.openPopup();
-      }, 400);
-    }
+    openPropertyPopup(focusPropertyId, map);
 
     onFocusDone?.();
   }, [focusPropertyId, properties, map, onFocusDone]);
@@ -299,14 +320,9 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
     focusProperty: (id: string) => {
       const property = properties.find(p => p.id === id);
       if (!property || !mapRef.current) return;
+
       mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
-      const marker = globalMarkersRef.get(id);
-      if (marker?.getPopup()) {
-        setTimeout(() => {
-          markerJustClicked = true;
-          marker.openPopup();
-        }, 400);
-      }
+      openPropertyPopup(id, mapRef.current);
     },
   }), [properties]);
 

@@ -106,6 +106,15 @@ const Index = () => {
     setMapBounds(bounds);
   }, []);
 
+  const focusMapProperty = useCallback((id: string) => {
+    if (mapRef.current) {
+      mapRef.current.focusProperty(id);
+      return;
+    }
+
+    setFocusPropertyId(id);
+  }, []);
+
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
@@ -319,8 +328,15 @@ const Index = () => {
                   ref={(el) => { cardRefs.current[property.id] = el; }}
                   property={property}
                   isSelected={selectedId === property.id}
-                  onClick={() => { handleSelect(property.id); setDetailProperty(property.id); setFocusPropertyId(property.id); }}
-                  onExpand={() => { setDetailProperty(property.id); setFocusPropertyId(property.id); }}
+                   onClick={() => {
+                     handleSelect(property.id);
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
+                   onExpand={() => {
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
                 />
               ))
             )}
@@ -345,20 +361,20 @@ const Index = () => {
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}
-        onClose={() => {
-          const closingId = detailProperty;
-          setDetailProperty(null);
-          // Reopen popup on map for the property that was being viewed
-          if (closingId) {
-            setTimeout(() => {
-              mapRef.current?.focusProperty(closingId);
-            }, 100);
-          }
-        }}
-        onViewOnMap={(id) => {
-          setDetailProperty(null);
-          setFocusPropertyId(id);
-        }}
+         onClose={() => {
+           const closingId = detailProperty;
+           setDetailProperty(null);
+
+           if (closingId) {
+             setTimeout(() => {
+               focusMapProperty(closingId);
+             }, 80);
+           }
+         }}
+         onViewOnMap={(id) => {
+           setDetailProperty(null);
+           focusMapProperty(id);
+         }}
       />
     </div>
   );
