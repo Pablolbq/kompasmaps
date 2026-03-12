@@ -90,14 +90,14 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
   return (
     <div
       className={`relative overflow-hidden group/carousel select-none ${className}`}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={() => { if (mouseStartX.current !== null) handleMouseUp(); }}
-      style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}
+      onTouchStart={disableDrag ? undefined : handleTouchStart}
+      onTouchMove={disableDrag ? undefined : handleTouchMove}
+      onTouchEnd={disableDrag ? undefined : handleTouchEnd}
+      onMouseDown={disableDrag ? undefined : handleMouseDown}
+      onMouseMove={disableDrag ? undefined : handleMouseMove}
+      onMouseUp={disableDrag ? undefined : handleMouseUp}
+      onMouseLeave={disableDrag ? undefined : () => { if (mouseStartX.current !== null) handleMouseUp(); }}
+      style={{ cursor: disableDrag ? 'pointer' : isDragging.current ? 'grabbing' : 'grab' }}
     >
       <div
         className="flex h-full"
