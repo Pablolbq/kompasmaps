@@ -149,7 +149,7 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
               onClick={() => onToggleListingType(lt)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
+                  ? 'bg-badge-midia text-white shadow-md'
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
@@ -159,6 +159,8 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
           );
         })}
       </div>
+
+      <div className="border-t border-border" />
 
       {/* Property type */}
       <div className="flex gap-2 flex-wrap">
