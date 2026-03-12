@@ -73,8 +73,10 @@ interface PropertyMapProps {
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
   useEffect(() => {
-    if (!onDeselect) return;
-    const handler = () => onDeselect();
+    const handler = () => {
+      map.closePopup();
+      onDeselect?.();
+    };
     map.on('click', handler);
     return () => { map.off('click', handler); };
   }, [map, onDeselect]);
