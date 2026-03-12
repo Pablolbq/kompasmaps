@@ -156,7 +156,16 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
   );
 }
 
-export function ImageLightbox({ images, startIndex, onClose }: { images: string[]; startIndex: number; onClose: () => void }) {
+interface ImageLightboxProps extends React.HTMLAttributes<HTMLDivElement> {
+  images: string[];
+  startIndex: number;
+  onClose: () => void;
+}
+
+export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(function ImageLightbox(
+  { images, startIndex, onClose, className = '', onClick, ...props },
+  ref,
+) {
   const total = images.length;
   const safeStartIndex = Math.max(0, Math.min(startIndex, Math.max(total - 1, 0)));
   const [current, setCurrent] = useState(safeStartIndex);
@@ -171,6 +180,18 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
   }, [safeStartIndex]);
 
   const goTo = useCallback((i: number) => setCurrent(Math.max(0, Math.min(total - 1, i))), [total]);
+
+  const finishDrag = useCallback(() => {
+    if (!isPointerDown.current) return;
+    isPointerDown.current = false;
+
+    if (Math.abs(dragOffset) > 60) {
+      if (dragOffset < 0) goTo(current + 1);
+      else goTo(current - 1);
+    }
+
+    setDragOffset(0);
+  }, [current, dragOffset, goTo]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -190,29 +211,35 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
 
   return (
     <div
-      className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 md:p-8"
+      ref={ref}
+      className={`fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 md:p-8 ${className}`}
+      role="dialog"
+      aria-modal="true"
       onClick={(e) => {
+        onClick?.(e);
+        if (e.defaultPrevented) return;
         if (e.target === e.currentTarget) onClose();
       }}
+      {...props}
     >
-      <div
-        className="relative w-full h-full max-w-[1200px] max-h-[880px] flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={onClose}
-          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-20"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center z-20"
           aria-label="Fechar fotos"
         >
           <X size={20} />
         </button>
 
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium z-20">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium z-20">
           {current + 1} / {total}
         </div>
 
         <div
-          className="w-full h-full flex items-center justify-center select-none"
+          className="relative flex items-center justify-center select-none"
           onPointerDown={(e) => {
             if ((e.target as HTMLElement).closest('button')) return;
             isPointerDown.current = true;
@@ -223,63 +250,48 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
             if (!isPointerDown.current) return;
             setDragOffset(e.clientX - startX.current);
           }}
-          onPointerUp={() => {
-            if (!isPointerDown.current) return;
-            isPointerDown.current = false;
-            if (Math.abs(dragOffset) > 60) {
-              if (dragOffset < 0) goTo(current + 1);
-              else goTo(current - 1);
-            }
-            setDragOffset(0);
-          }}
-          onPointerLeave={() => {
-            if (!isPointerDown.current) return;
-            isPointerDown.current = false;
-            if (Math.abs(dragOffset) > 60) {
-              if (dragOffset < 0) goTo(current + 1);
-              else goTo(current - 1);
-            }
-            setDragOffset(0);
-          }}
+          onPointerUp={finishDrag}
+          onPointerLeave={finishDrag}
+          onPointerCancel={finishDrag}
           style={{ touchAction: 'pan-y' }}
         >
           <img
             src={images[current]}
             alt={`Foto ${current + 1}`}
-            className="max-w-[88vw] max-h-[78vh] object-contain rounded-lg"
+            className="max-w-[72vw] max-h-[72vh] object-contain rounded-lg"
             style={{
               transform: `translateX(${dragOffset}px)`,
               transition: dragOffset !== 0 ? 'none' : 'transform 0.3s ease-out',
             }}
             draggable={false}
           />
-        </div>
 
-        {total > 1 && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goTo(current - 1);
-              }}
-              className="absolute left-0 top-0 bottom-0 w-16 flex items-center justify-center bg-black/0 hover:bg-white/10 text-white z-20"
-              aria-label="Foto anterior"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                goTo(current + 1);
-              }}
-              className="absolute right-0 top-0 bottom-0 w-16 flex items-center justify-center bg-black/0 hover:bg-white/10 text-white z-20"
-              aria-label="Próxima foto"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </>
-        )}
+          {total > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goTo(current - 1);
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center z-20"
+                aria-label="Foto anterior"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goTo(current + 1);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center z-20"
+                aria-label="Próxima foto"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
-}
+});
