@@ -213,6 +213,7 @@ export default function Admin() {
     setForm({
       title: p.title,
       type: p.type,
+      listingType: p.listingType,
       price: String(p.price),
       area: String(p.area),
       bedrooms: p.bedrooms != null ? String(p.bedrooms) : '',
