@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const defaultForm = {
-  title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
+  title: '', type: 'casa' as PropertyType, listingType: 'venda' as ListingType, price: '', area: '', bedrooms: '', bathrooms: '',
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
   mediaType: '' as string,
 };
