@@ -126,7 +126,7 @@ function MarkerClusterLayer({
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
+      spiderfyOnMaxZoom: false,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       iconCreateFunction: (c: any) => {
@@ -142,13 +142,32 @@ function MarkerClusterLayer({
       },
     });
 
+    cluster.on('clusterclick', (event: any) => {
+      const maxZoom = map.getMaxZoom();
+      const maxZoomThreshold = Number.isFinite(maxZoom) ? maxZoom - 1 : 17;
+      const isAtMax = map.getZoom() >= maxZoomThreshold;
+      if (!isAtMax) return;
+
+      if (event.originalEvent) {
+        L.DomEvent.stop(event.originalEvent);
+      }
+
+      const isAlreadySpiderfied = (cluster as any)._spiderfied === event.layer;
+      if (!isAlreadySpiderfied && event.layer?.spiderfy) {
+        event.layer.spiderfy();
+      }
+    });
+
     properties.forEach((property) => {
       const marker = L.marker([property.lat, property.lng], {
         icon: createCustomIcon(property.type, false, false),
       });
 
-      marker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
+      marker.on('click', (e: L.LeafletMouseEvent) => {
+        if (e.originalEvent) {
+          L.DomEvent.stop(e.originalEvent);
+        }
+
         if (openPopupId.current === property.id) {
           marker.closePopup();
           openPopupId.current = null;
@@ -156,7 +175,9 @@ function MarkerClusterLayer({
         } else {
           openPopupId.current = property.id;
           onSelect(property.id);
-          marker.openPopup();
+          if (!isMobile && marker.getPopup()) {
+            marker.openPopup();
+          }
         }
       });
 

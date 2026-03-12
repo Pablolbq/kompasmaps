@@ -122,7 +122,7 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
       </div>
 
       {/* Fullscreen button */}
-      {onOpenFullscreen && (
+      {showControls && onOpenFullscreen && (
         <button
           onClick={(e) => { e.stopPropagation(); if (!isDragging.current) onOpenFullscreen(current); }}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity z-10"
@@ -131,7 +131,7 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
         </button>
       )}
 
-      {total > 1 && (
+      {showControls && total > 1 && (
         <>
           <button
             onClick={(e) => { if (!isDragging.current) prev(e); else e.stopPropagation(); }}
