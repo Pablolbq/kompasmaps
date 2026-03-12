@@ -328,8 +328,15 @@ const Index = () => {
                   ref={(el) => { cardRefs.current[property.id] = el; }}
                   property={property}
                   isSelected={selectedId === property.id}
-                  onClick={() => { handleSelect(property.id); setDetailProperty(property.id); setFocusPropertyId(property.id); }}
-                  onExpand={() => { setDetailProperty(property.id); setFocusPropertyId(property.id); }}
+                   onClick={() => {
+                     handleSelect(property.id);
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
+                   onExpand={() => {
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
                 />
               ))
             )}
