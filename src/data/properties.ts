@@ -41,9 +41,15 @@ export const mediaTypeLabels: Record<MediaType, string> = {
 
 export const WHATSAPP_NUMBER = '5542991519146';
 
+export const listingTypeLabels: Record<ListingType, string> = {
+  venda: 'Venda',
+  aluguel: 'Aluguel',
+};
+
 export function getWhatsAppLink(property: Property): string {
+  const propertyUrl = `${window.location.origin}/?imovel=${property.id}`;
   const message = encodeURIComponent(
-    `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?`
+    `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?\n\nLink: ${propertyUrl}`
   );
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
 }
