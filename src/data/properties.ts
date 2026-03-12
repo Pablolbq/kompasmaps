@@ -1,10 +1,12 @@
 export type PropertyType = 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'midia';
 export type MediaType = 'digital' | 'estatica';
+export type ListingType = 'venda' | 'aluguel';
 
 export interface Property {
   id: string;
   title: string;
   type: PropertyType;
+  listingType: ListingType;
   price: number;
   area: number;
   bedrooms?: number;
