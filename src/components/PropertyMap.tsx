@@ -1,13 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle } from 'lucide-react';
-import { useEffect, useRef, useCallback } from 'react';
-import { createRoot } from 'react-dom/client';
+import { useEffect, useRef } from 'react';
 
 const typeColors: Record<string, string> = {
   casa: '#1a9a8a',
@@ -128,7 +126,7 @@ function MarkerClusterLayer({
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
+      spiderfyOnMaxZoom: false,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       iconCreateFunction: (c: any) => {
@@ -144,13 +142,32 @@ function MarkerClusterLayer({
       },
     });
 
+    cluster.on('clusterclick', (event: any) => {
+      const maxZoom = map.getMaxZoom();
+      const maxZoomThreshold = Number.isFinite(maxZoom) ? maxZoom - 1 : 17;
+      const isAtMax = map.getZoom() >= maxZoomThreshold;
+      if (!isAtMax) return;
+
+      if (event.originalEvent) {
+        L.DomEvent.stop(event.originalEvent);
+      }
+
+      const isAlreadySpiderfied = (cluster as any)._spiderfied === event.layer;
+      if (!isAlreadySpiderfied && event.layer?.spiderfy) {
+        event.layer.spiderfy();
+      }
+    });
+
     properties.forEach((property) => {
       const marker = L.marker([property.lat, property.lng], {
         icon: createCustomIcon(property.type, false, false),
       });
 
-      marker.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
+      marker.on('click', (e: L.LeafletMouseEvent) => {
+        if (e.originalEvent) {
+          L.DomEvent.stop(e.originalEvent);
+        }
+
         if (openPopupId.current === property.id) {
           marker.closePopup();
           openPopupId.current = null;
@@ -158,7 +175,9 @@ function MarkerClusterLayer({
         } else {
           openPopupId.current = property.id;
           onSelect(property.id);
-          marker.openPopup();
+          if (!isMobile && marker.getPopup()) {
+            marker.openPopup();
+          }
         }
       });
 
@@ -197,7 +216,7 @@ function MarkerClusterLayer({
         if (titleEl && onExpand) {
           titleEl.addEventListener('click', () => onExpand(property.id));
         }
-        marker.bindPopup(popupContent, { autoClose: true, closeOnClick: false });
+        marker.bindPopup(popupContent, { autoClose: true });
       }
 
       markersRef.current.set(property.id, marker);
