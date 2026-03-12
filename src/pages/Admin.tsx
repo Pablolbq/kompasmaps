@@ -354,6 +354,12 @@ export default function Admin() {
                 />
               </div>
               <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-semibold hover:bg-secondary/80 transition-all whitespace-nowrap"
+              >
+                <Upload size={14} /> Importar XML
+              </button>
+              <button
                 onClick={openNewForm}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap"
               >
