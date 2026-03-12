@@ -3,7 +3,7 @@ import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, m
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
-import { Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search, MapPin } from 'lucide-react';
+import { Plus, ArrowLeft, Lock, LogOut, Loader2, Pencil, Trash2, Archive, ArchiveRestore, Search, MapPin, Upload } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -98,6 +98,30 @@ export default function Admin() {
   const [form, setForm] = useState(defaultForm);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Import state
+  const [showImport, setShowImport] = useState(false);
+  const [xmlUrl, setXmlUrl] = useState('');
+  const [importing, setImporting] = useState(false);
+
+  const handleImportXml = async () => {
+    if (!xmlUrl.trim()) { toast.error('Cole a URL do XML'); return; }
+    setImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-xml', {
+        body: { xmlUrl: xmlUrl.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) { toast.error(data.error); setImporting(false); return; }
+      toast.success(`Importados ${data.imported} de ${data.total} imóveis! ${data.skipped > 0 ? `(${data.skipped} ignorados)` : ''}`);
+      setShowImport(false);
+      setXmlUrl('');
+      fetchProperties();
+    } catch (err: any) {
+      toast.error('Erro na importação: ' + (err.message || 'Erro desconhecido'));
+    }
+    setImporting(false);
+  };
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-secondary text-sm text-foreground placeholder:text-muted-foreground border border-border outline-none focus:ring-2 focus:ring-primary/30";
 
@@ -330,6 +354,12 @@ export default function Admin() {
                 />
               </div>
               <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-semibold hover:bg-secondary/80 transition-all whitespace-nowrap"
+              >
+                <Upload size={14} /> Importar XML
+              </button>
+              <button
                 onClick={openNewForm}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:shadow-md transition-all whitespace-nowrap"
               >
@@ -550,6 +580,39 @@ export default function Admin() {
               {submitting ? <Loader2 size={16} className="animate-spin" /> : editingId ? 'Salvar alterações' : <><Plus size={16} /> Adicionar Imóvel</>}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Import XML Modal */}
+      {showImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !importing && setShowImport(false)}>
+          <div className="w-full max-w-md bg-card rounded-2xl border border-border shadow-xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-foreground">Importar XML</h2>
+            <p className="text-xs text-muted-foreground">Cole a URL do feed XML de imóveis para importar automaticamente.</p>
+            <input
+              className={inputClass}
+              value={xmlUrl}
+              onChange={(e) => setXmlUrl(e.target.value)}
+              placeholder="https://exemplo.com.br/integracao/feed.xml"
+              disabled={importing}
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowImport(false)}
+                disabled={importing}
+                className="px-4 py-2 rounded-lg bg-secondary text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleImportXml}
+                disabled={importing || !xmlUrl.trim()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:shadow-md transition-all disabled:opacity-50"
+              >
+                {importing ? <><Loader2 size={14} className="animate-spin" /> Importando...</> : <><Upload size={14} /> Importar</>}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,1 +1,4 @@
 project_id = "eeqkwhhcbeicyfzgvtcg"
+
+[functions.import-xml]
+verify_jwt = false
