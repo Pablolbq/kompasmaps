@@ -171,27 +171,15 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
     setDragOffset(0);
   }, [dragOffset, current, goTo]);
 
-  // Keyboard
-  const onKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-    if (e.key === 'ArrowRight') goTo(current + 1);
-    if (e.key === 'ArrowLeft') goTo(current - 1);
-  }, [onClose, current, goTo]);
-
-  useState(() => {
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  });
-
-  // Keep keyboard handler up to date
-  const keyRef = useRef(onKeyDown);
-  keyRef.current = onKeyDown;
-
-  useState(() => {
-    const handler = (e: KeyboardEvent) => keyRef.current(e);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') goTo(current + 1);
+      if (e.key === 'ArrowLeft') goTo(current - 1);
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  });
+  }, [onClose, current, goTo]);
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
