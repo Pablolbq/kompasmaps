@@ -215,17 +215,23 @@ function MarkerClusterLayer({
   }, [properties, onSelect, onExpand, isMobile, map]);
 
   // Update icons when selection changes (without rebuilding cluster)
+  // Use setTimeout to avoid closing the popup that Leaflet just opened
   useEffect(() => {
-    const hasSelection = !!selectedId;
-    markersRef.current.forEach((marker, id) => {
-      const property = properties.find(p => p.id === id);
-      if (property) {
-        const isSelected = selectedId === id;
-        marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
-        if (isSelected) marker.setZIndexOffset(1000);
-        else marker.setZIndexOffset(0);
-      }
-    });
+    const timer = setTimeout(() => {
+      const hasSelection = !!selectedId;
+      markersRef.current.forEach((marker, id) => {
+        const property = properties.find(p => p.id === id);
+        if (property) {
+          const isSelected = selectedId === id;
+          // Don't update icon if popup is open (setIcon closes popup)
+          if (marker.isPopupOpen()) return;
+          marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
+          if (isSelected) marker.setZIndexOffset(1000);
+          else marker.setZIndexOffset(0);
+        }
+      });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [selectedId, properties]);
 
   return null;
