@@ -112,12 +112,12 @@ const formatBRL = (v: number) => {
 };
 
 export default function PropertyFilters({ activeTypes, onToggleType, activeListingTypes, onToggleListingType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
-  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial', 'midia'];
+  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
   const listingTypes: ListingType[] = ['venda', 'aluguel'];
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
-  const onlyMidia = activeTypes.length === 1 && activeTypes[0] === 'midia';
+  const onlyMidia = false;
 
   useEffect(() => {
     if (activeTypes.length !== 1 || activeTypes[0] !== 'casa') setShowHint(false);
