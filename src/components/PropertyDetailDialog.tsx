@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone, MapPinned } from 'lucide-react';
 import ImageCarousel, { ImageLightbox } from './ImageCarousel';
 
 const SW = 1.5;
@@ -22,16 +22,17 @@ interface Props {
   property: Property | null;
   open: boolean;
   onClose: () => void;
+  onViewOnMap?: (id: string) => void;
 }
 
-export default function PropertyDetailDialog({ property, open, onClose }: Props) {
+export default function PropertyDetailDialog({ property, open, onClose, onViewOnMap }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) {
       setLightboxIndex(null);
     }
-  }, [open, property?.id]);
+  }, [open]);
 
   if (!property) return null;
   const isMidia = property.type === 'midia';
@@ -41,8 +42,7 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
       <Dialog
         open={open}
         onOpenChange={(o) => {
-          if (!o) {
-            setLightboxIndex(null);
+          if (!o && lightboxIndex === null) {
             onClose();
           }
         }}
@@ -83,15 +83,27 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
 
               <p className="text-sm text-foreground/80 leading-relaxed">{property.description}</p>
 
-              <a
-                href={getWhatsAppLink(property)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg transition-all"
-              >
-                <MessageCircle size={16} strokeWidth={SW} />
-                Falar no WhatsApp
-              </a>
+              <div className="flex items-center gap-2 flex-wrap">
+                <a
+                  href={getWhatsAppLink(property)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg transition-all"
+                >
+                  <MessageCircle size={16} strokeWidth={SW} />
+                  Falar no WhatsApp
+                </a>
+
+                {onViewOnMap && (
+                  <button
+                    onClick={() => onViewOnMap(property.id)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all"
+                  >
+                    <MapPinned size={16} strokeWidth={SW} />
+                    Ver no mapa
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>
@@ -107,4 +119,3 @@ export default function PropertyDetailDialog({ property, open, onClose }: Props)
     </>
   );
 }
-

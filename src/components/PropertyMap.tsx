@@ -5,7 +5,9 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+
+
 
 const typeColors: Record<string, string> = {
   casa: '#1a9a8a',
@@ -64,9 +66,18 @@ interface PropertyMapProps {
   onExpand?: (id: string) => void;
   isMobile?: boolean;
   onBoundsChange?: (bounds: L.LatLngBounds) => void;
+  focusPropertyId?: string | null;
+  onFocusDone?: () => void;
+}
+
+export interface PropertyMapHandle {
+  focusProperty: (id: string) => void;
 }
 
 let markerJustClicked = false;
+
+// Global registry so FocusHandler can access markers
+let globalMarkersRef: Map<string, L.Marker> = new Map();
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   const map = useMap();
@@ -229,6 +240,7 @@ function MarkerClusterLayer({
       }
 
       markersRef.current.set(property.id, marker);
+      globalMarkersRef.set(property.id, marker);
       cluster.addLayer(marker);
     });
 
@@ -246,7 +258,31 @@ function MarkerClusterLayer({
   return null;
 }
 
-export default function PropertyMap({
+function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPropertyId?: string | null; properties: Property[]; onFocusDone?: () => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!focusPropertyId) return;
+    const property = properties.find(p => p.id === focusPropertyId);
+    if (!property) return;
+
+    map.setView([property.lat, property.lng], 16, { animate: true });
+
+    const marker = globalMarkersRef.get(focusPropertyId);
+    if (marker?.getPopup()) {
+      setTimeout(() => {
+        markerJustClicked = true;
+        marker.openPopup();
+      }, 400);
+    }
+
+    onFocusDone?.();
+  }, [focusPropertyId, properties, map, onFocusDone]);
+
+  return null;
+}
+
+const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function PropertyMap({
   properties,
   selectedId: _selectedId,
   onSelect,
@@ -254,9 +290,34 @@ export default function PropertyMap({
   onExpand,
   isMobile = false,
   onBoundsChange,
-}: PropertyMapProps) {
+  focusPropertyId,
+  onFocusDone,
+}, ref) {
+  const mapRef = useRef<L.Map | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusProperty: (id: string) => {
+      const property = properties.find(p => p.id === id);
+      if (!property || !mapRef.current) return;
+      mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
+      const marker = globalMarkersRef.get(id);
+      if (marker?.getPopup()) {
+        setTimeout(() => {
+          markerJustClicked = true;
+          marker.openPopup();
+        }, 400);
+      }
+    },
+  }), [properties]);
+
   return (
-    <MapContainer center={[-25.0945, -50.1633]} zoom={13} className="h-full w-full" zoomControl={false}>
+    <MapContainer
+      center={[-25.0945, -50.1633]}
+      zoom={13}
+      className="h-full w-full"
+      zoomControl={false}
+      ref={mapRef}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -264,7 +325,9 @@ export default function PropertyMap({
       <MapClickHandler onDeselect={onDeselect} />
       <BoundsReporter onBoundsChange={onBoundsChange} />
       <MarkerClusterLayer properties={properties} onSelect={onSelect} onExpand={onExpand} isMobile={isMobile} />
+      <FocusHandler focusPropertyId={focusPropertyId} properties={properties} onFocusDone={onFocusDone} />
     </MapContainer>
   );
-}
+});
 
+export default PropertyMap;

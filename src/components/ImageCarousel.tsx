@@ -16,43 +16,33 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
   const [dragOffset, setDragOffset] = useState(0);
   const dragging = useRef(false);
   const startX = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const isPointerDown = useRef(false);
 
   const goTo = useCallback((index: number) => {
     setCurrent(Math.max(0, Math.min(total - 1, index)));
   }, [total]);
 
-  const prev = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    e?.preventDefault();
-    goTo(current - 1);
-  }, [current, goTo]);
-
-  const next = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    e?.preventDefault();
-    goTo(current + 1);
-  }, [current, goTo]);
-
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (disableDrag) return;
+    // Don't start drag if clicking a button
+    if ((e.target as HTMLElement).closest('button')) return;
     dragging.current = false;
+    isPointerDown.current = true;
     startX.current = e.clientX;
     setDragOffset(0);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, [disableDrag]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (disableDrag || startX.current === 0) return;
+    if (!isPointerDown.current) return;
     const delta = e.clientX - startX.current;
     if (Math.abs(delta) > 5) dragging.current = true;
     setDragOffset(delta);
-  }, [disableDrag]);
+  }, []);
 
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (disableDrag) return;
-    const delta = e.clientX - startX.current;
-    startX.current = 0;
+  const onPointerUp = useCallback(() => {
+    if (!isPointerDown.current) return;
+    isPointerDown.current = false;
+    const delta = dragOffset;
 
     if (Math.abs(delta) > 40) {
       if (delta < 0) goTo(current + 1);
@@ -61,7 +51,7 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
 
     setDragOffset(0);
     setTimeout(() => { dragging.current = false; }, 60);
-  }, [disableDrag, current, goTo]);
+  }, [dragOffset, current, goTo]);
 
   if (total === 0) return null;
 
@@ -70,13 +60,13 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
 
   return (
     <div
-      ref={containerRef}
       className={`relative overflow-hidden group/carousel select-none ${className}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
       onPointerCancel={onPointerUp}
-      style={{ cursor: disableDrag ? 'pointer' : dragging.current ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
+      style={{ cursor: disableDrag ? 'pointer' : dragging.current ? 'grabbing' : 'grab', touchAction: disableDrag ? 'auto' : 'pan-y' }}
     >
       <div
         className="flex h-full"
@@ -111,15 +101,13 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
       {showControls && total > 1 && (
         <>
           <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={prev}
+            onClick={(e) => { e.stopPropagation(); goTo(current - 1); }}
             className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center bg-black/0 hover:bg-black/20 text-white opacity-0 group-hover/carousel:opacity-100 transition-all z-10"
           >
             <ChevronLeft size={18} />
           </button>
           <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={next}
+            onClick={(e) => { e.stopPropagation(); goTo(current + 1); }}
             className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center bg-black/0 hover:bg-black/20 text-white opacity-0 group-hover/carousel:opacity-100 transition-all z-10"
           >
             <ChevronRight size={18} />
@@ -129,7 +117,6 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
             {images.map((_, i) => (
               <button
                 key={i}
-                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-white w-3' : 'bg-white/50'}`}
               />
@@ -146,43 +133,26 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
   const [current, setCurrent] = useState(startIndex);
   const total = images.length;
   const [dragOffset, setDragOffset] = useState(0);
+  const isPointerDown = useRef(false);
   const startX = useRef(0);
 
   const goTo = useCallback((i: number) => setCurrent(Math.max(0, Math.min(total - 1, i))), [total]);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    startX.current = e.clientX;
-    setDragOffset(0);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }, []);
-
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (startX.current === 0) return;
-    setDragOffset(e.clientX - startX.current);
-  }, []);
-
-  const onPointerUp = useCallback(() => {
-    const delta = dragOffset;
-    startX.current = 0;
-    if (Math.abs(delta) > 60) {
-      if (delta < 0) goTo(current + 1);
-      else goTo(current - 1);
-    }
-    setDragOffset(0);
-  }, [dragOffset, current, goTo]);
-
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
       if (e.key === 'ArrowRight') goTo(current + 1);
       if (e.key === 'ArrowLeft') goTo(current - 1);
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', handler, true);
+    return () => window.removeEventListener('keydown', handler, true);
   }, [onClose, current, goTo]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
+      onClick={(e) => { e.stopPropagation(); }}
+    >
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center z-10"
@@ -196,10 +166,34 @@ export function ImageLightbox({ images, startIndex, onClose }: { images: string[
 
       <div
         className="w-full h-full flex items-center justify-center select-none"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerDown={(e) => {
+          if ((e.target as HTMLElement).closest('button')) return;
+          isPointerDown.current = true;
+          startX.current = e.clientX;
+          setDragOffset(0);
+        }}
+        onPointerMove={(e) => {
+          if (!isPointerDown.current) return;
+          setDragOffset(e.clientX - startX.current);
+        }}
+        onPointerUp={() => {
+          if (!isPointerDown.current) return;
+          isPointerDown.current = false;
+          if (Math.abs(dragOffset) > 60) {
+            if (dragOffset < 0) goTo(current + 1);
+            else goTo(current - 1);
+          }
+          setDragOffset(0);
+        }}
+        onPointerLeave={() => {
+          if (!isPointerDown.current) return;
+          isPointerDown.current = false;
+          if (Math.abs(dragOffset) > 60) {
+            if (dragOffset < 0) goTo(current + 1);
+            else goTo(current - 1);
+          }
+          setDragOffset(0);
+        }}
         style={{ touchAction: 'pan-y' }}
       >
         <img

@@ -3,7 +3,7 @@ import L from 'leaflet';
 import logoImg from '@/assets/logo.png';
 import { PropertyType, ListingType, WHATSAPP_NUMBER } from '@/data/properties';
 import { useProperties } from '@/hooks/useProperties';
-import PropertyMap from '@/components/PropertyMap';
+import PropertyMap, { PropertyMapHandle } from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
@@ -31,6 +31,8 @@ const Index = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const mapRef = useRef<PropertyMapHandle>(null);
+  const [focusPropertyId, setFocusPropertyId] = useState<string | null>(null);
 
   // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
@@ -327,12 +329,15 @@ const Index = () => {
 
         <main className="flex flex-1 relative">
           <PropertyMap
+            ref={mapRef}
             properties={filteredProperties}
             selectedId={selectedId}
             onSelect={handleSelect}
             onDeselect={() => setSelectedId(null)}
             onExpand={(id) => setDetailProperty(id)}
             onBoundsChange={handleBoundsChange}
+            focusPropertyId={focusPropertyId}
+            onFocusDone={() => setFocusPropertyId(null)}
           />
         </main>
       </div>
@@ -340,7 +345,20 @@ const Index = () => {
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}
-        onClose={() => setDetailProperty(null)}
+        onClose={() => {
+          const closingId = detailProperty;
+          setDetailProperty(null);
+          // Reopen popup on map for the property that was being viewed
+          if (closingId) {
+            setTimeout(() => {
+              mapRef.current?.focusProperty(closingId);
+            }, 100);
+          }
+        }}
+        onViewOnMap={(id) => {
+          setDetailProperty(null);
+          setFocusPropertyId(id);
+        }}
       />
     </div>
   );
