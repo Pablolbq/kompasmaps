@@ -240,6 +240,7 @@ function MarkerClusterLayer({
       }
 
       markersRef.current.set(property.id, marker);
+      globalMarkersRef.set(property.id, marker);
       cluster.addLayer(marker);
     });
 
