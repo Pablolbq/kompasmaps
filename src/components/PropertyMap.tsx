@@ -320,14 +320,9 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
     focusProperty: (id: string) => {
       const property = properties.find(p => p.id === id);
       if (!property || !mapRef.current) return;
+
       mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
-      const marker = globalMarkersRef.get(id);
-      if (marker?.getPopup()) {
-        setTimeout(() => {
-          markerJustClicked = true;
-          marker.openPopup();
-        }, 400);
-      }
+      openPropertyPopup(id, mapRef.current);
     },
   }), [properties]);
 
