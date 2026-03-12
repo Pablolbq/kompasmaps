@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, mediaTypeLabels } from '@/data/properties';
+import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, mediaTypeLabels, ListingType, listingTypeLabels } from '@/data/properties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
