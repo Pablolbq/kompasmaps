@@ -294,10 +294,21 @@ function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPrope
     const property = properties.find(p => p.id === focusPropertyId);
     if (!property) return;
 
-    map.setView([property.lat, property.lng], 16, { animate: true });
-    openPropertyPopup(focusPropertyId, map);
+    let opened = false;
+    const attemptOpen = () => {
+      if (opened) return;
+      opened = true;
+      openPropertyPopup(focusPropertyId, map);
+      onFocusDone?.();
+    };
 
-    onFocusDone?.();
+    map.once('moveend', attemptOpen);
+    map.setView([property.lat, property.lng], 16, { animate: true });
+    setTimeout(attemptOpen, 320);
+
+    return () => {
+      map.off('moveend', attemptOpen);
+    };
   }, [focusPropertyId, properties, map, onFocusDone]);
 
   return null;
@@ -321,8 +332,17 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
       const property = properties.find(p => p.id === id);
       if (!property || !mapRef.current) return;
 
-      mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
-      openPropertyPopup(id, mapRef.current);
+      const mapInstance = mapRef.current;
+      let opened = false;
+      const attemptOpen = () => {
+        if (opened) return;
+        opened = true;
+        openPropertyPopup(id, mapInstance);
+      };
+
+      mapInstance.once('moveend', attemptOpen);
+      mapInstance.setView([property.lat, property.lng], 16, { animate: true });
+      setTimeout(attemptOpen, 320);
     },
   }), [properties]);
 

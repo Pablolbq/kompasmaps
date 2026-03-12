@@ -156,14 +156,14 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
   );
 }
 
-interface ImageLightboxProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ImageLightboxProps {
   images: string[];
   startIndex: number;
   onClose: () => void;
 }
 
 export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(function ImageLightbox(
-  { images, startIndex, onClose, className = '', onClick, ...props },
+  { images, startIndex, onClose },
   ref,
 ) {
   const total = images.length;
@@ -212,15 +212,12 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
   return (
     <div
       ref={ref}
-      className={`fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 md:p-8 ${className}`}
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 md:p-8"
       role="dialog"
       aria-modal="true"
       onClick={(e) => {
-        onClick?.(e);
-        if (e.defaultPrevented) return;
         if (e.target === e.currentTarget) onClose();
       }}
-      {...props}
     >
       <div className="relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
         <button
@@ -245,6 +242,7 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
             isPointerDown.current = true;
             startX.current = e.clientX;
             setDragOffset(0);
+            e.currentTarget.setPointerCapture(e.pointerId);
           }}
           onPointerMove={(e) => {
             if (!isPointerDown.current) return;
