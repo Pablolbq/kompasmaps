@@ -156,22 +156,8 @@ function MarkerClusterLayer({
         icon: createCustomIcon(property.type, false, false),
       });
 
-      marker.on('click', (e: L.LeafletMouseEvent) => {
-        if (e.originalEvent) {
-          L.DomEvent.stop(e.originalEvent);
-        }
-
-        if (!isMobile && marker.getPopup()) {
-          if (marker.isPopupOpen()) {
-            marker.closePopup();
-            openPopupId.current = null;
-            onSelect(property.id);
-            return;
-          }
-          marker.openPopup();
-        }
-
-        openPopupId.current = property.id;
+      // Simple click: select + let Leaflet handle popup natively
+      marker.on('click', () => {
         onSelect(property.id);
       });
 
