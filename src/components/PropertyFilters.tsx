@@ -1,5 +1,5 @@
-import { PropertyType, propertyTypeLabels } from '@/data/properties';
-import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone } from 'lucide-react';
+import { PropertyType, propertyTypeLabels, ListingType, listingTypeLabels } from '@/data/properties';
+import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone, Tag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 
@@ -30,6 +30,8 @@ export const emptyAdvancedFilters: AdvancedFilters = {
 interface PropertyFiltersProps {
   activeTypes: PropertyType[];
   onToggleType: (type: PropertyType) => void;
+  activeListingTypes: ListingType[];
+  onToggleListingType: (lt: ListingType) => void;
   total: number;
   advancedFilters: AdvancedFilters;
   onAdvancedFiltersChange: (filters: AdvancedFilters) => void;
@@ -47,7 +49,7 @@ function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
   const displayValue = value ?? min;
   const fmt = formatValue || ((v: number) => String(v));
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
         <span className="text-[11px] font-semibold text-foreground">
@@ -60,6 +62,7 @@ function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
         step={step}
         value={[displayValue]}
         onValueChange={([v]) => onChange(v === min ? null : v)}
+        className="py-1"
       />
     </div>
   );
@@ -80,7 +83,7 @@ function RangeSliderFilter({ label, valueMin, valueMax, onChangeMin, onChangeMax
   const hi = valueMax ?? max;
   const fmt = formatValue || ((v: number) => String(v));
   return (
-    <div className="flex flex-col gap-1.5 col-span-2">
+    <div className="flex flex-col gap-2 col-span-2">
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
         <span className="text-[11px] font-semibold text-foreground">
@@ -96,6 +99,7 @@ function RangeSliderFilter({ label, valueMin, valueMax, onChangeMin, onChangeMax
           onChangeMin(newLo === min ? null : newLo);
           onChangeMax(newHi === max ? null : newHi);
         }}
+        className="py-1"
       />
     </div>
   );
@@ -107,8 +111,9 @@ const formatBRL = (v: number) => {
   return `R$ ${v}`;
 };
 
-export default function PropertyFilters({ activeTypes, onToggleType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
+export default function PropertyFilters({ activeTypes, onToggleType, activeListingTypes, onToggleListingType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
   const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial', 'midia'];
+  const listingTypes: ListingType[] = ['venda', 'aluguel'];
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
@@ -133,6 +138,29 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
           {total} {total === 1 ? 'imóvel' : 'imóveis'}
         </span>
       </div>
+
+      {/* Listing type: Venda / Aluguel */}
+      <div className="flex gap-2">
+        {listingTypes.map((lt) => {
+          const isActive = activeListingTypes.includes(lt);
+          return (
+            <button
+              key={lt}
+              onClick={() => onToggleListingType(lt)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <Tag size={14} strokeWidth={SW} />
+              {listingTypeLabels[lt]}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Property type */}
       <div className="flex gap-2 flex-wrap">
         {types.map((type) => {
           const isActive = activeTypes.includes(type);
@@ -156,7 +184,7 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
         })}
       </div>
 
-      {/* Advanced toggle — hidden when only mídia is selected */}
+      {/* Advanced toggle */}
       {!onlyMidia && (
         <>
           <button
@@ -176,7 +204,7 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
           </button>
 
           {showAdvanced && (
-            <div className="grid grid-cols-2 gap-4 pt-1 animate-accordion-down">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-1 animate-accordion-down">
               <RangeSliderFilter
                 label="Preço"
                 valueMin={advancedFilters.priceMin}
@@ -212,14 +240,16 @@ export default function PropertyFilters({ activeTypes, onToggleType, total, adva
                 max={5}
                 step={1}
               />
-              <SliderFilter
-                label="Área mín (m²)"
-                value={advancedFilters.areaMin}
-                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
+              <RangeSliderFilter
+                label="Área (m²)"
+                valueMin={advancedFilters.areaMin}
+                valueMax={advancedFilters.areaMax}
+                onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
+                onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMax: v })}
                 min={0}
                 max={1000}
                 step={10}
-                formatValue={(v) => `${v} m²`}
+                formatValue={(v) => `${v}m²`}
               />
             </div>
           )}

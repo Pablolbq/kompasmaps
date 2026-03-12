@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, mediaTypeLabels } from '@/data/properties';
+import { PropertyType, propertyTypeLabels, mapDbProperty, Property, MediaType, mediaTypeLabels, ListingType, listingTypeLabels } from '@/data/properties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import ImageUploader from '@/components/ImageUploader';
@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const defaultForm = {
-  title: '', type: 'casa' as PropertyType, price: '', area: '', bedrooms: '', bathrooms: '',
+  title: '', type: 'casa' as PropertyType, listingType: 'venda' as ListingType, price: '', area: '', bedrooms: '', bathrooms: '',
   garageSpaces: '', address: '', neighborhood: '', cep: '', lat: '', lng: '', description: '',
   mediaType: '' as string,
 };
@@ -213,6 +213,7 @@ export default function Admin() {
     setForm({
       title: p.title,
       type: p.type,
+      listingType: p.listingType,
       price: String(p.price),
       area: String(p.area),
       bedrooms: p.bedrooms != null ? String(p.bedrooms) : '',
@@ -241,6 +242,7 @@ export default function Admin() {
     const payload = {
       title: form.title,
       type: form.type,
+      listing_type: form.listingType,
       price: Number(form.price),
       area: Number(form.area),
       bedrooms: !isMidia && form.bedrooms ? Number(form.bedrooms) : null,
@@ -442,6 +444,15 @@ export default function Admin() {
               <select className={inputClass} value={form.type} onChange={(e) => set('type', e.target.value)}>
                 {(['casa', 'apartamento', 'terreno', 'comercial', 'midia'] as PropertyType[]).map((t) => (
                   <option key={t} value={t}>{propertyTypeLabels[t]}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Finalidade *</label>
+              <select className={inputClass} value={form.listingType} onChange={(e) => set('listingType', e.target.value)}>
+                {(['venda', 'aluguel'] as ListingType[]).map((t) => (
+                  <option key={t} value={t}>{listingTypeLabels[t]}</option>
                 ))}
               </select>
             </div>

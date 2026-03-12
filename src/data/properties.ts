@@ -1,10 +1,12 @@
 export type PropertyType = 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'midia';
 export type MediaType = 'digital' | 'estatica';
+export type ListingType = 'venda' | 'aluguel';
 
 export interface Property {
   id: string;
   title: string;
   type: PropertyType;
+  listingType: ListingType;
   price: number;
   area: number;
   bedrooms?: number;
@@ -39,9 +41,15 @@ export const mediaTypeLabels: Record<MediaType, string> = {
 
 export const WHATSAPP_NUMBER = '5542991519146';
 
+export const listingTypeLabels: Record<ListingType, string> = {
+  venda: 'Venda',
+  aluguel: 'Aluguel',
+};
+
 export function getWhatsAppLink(property: Property): string {
+  const propertyUrl = `${window.location.origin}/?imovel=${property.id}`;
   const message = encodeURIComponent(
-    `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?`
+    `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?\n\nLink: ${propertyUrl}`
   );
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
 }
@@ -63,11 +71,13 @@ export function mapDbProperty(row: {
   images: string[];
   description: string;
   media_type?: string | null;
+  listing_type?: string | null;
 }): Property {
   return {
     id: row.id,
     title: row.title,
     type: row.type as PropertyType,
+    listingType: (row.listing_type as ListingType) || 'venda',
     price: row.price,
     area: row.area,
     bedrooms: row.bedrooms ?? undefined,

@@ -1,9 +1,13 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
 import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
 import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
 
 const typeColors: Record<string, string> = {
   casa: '#1a9a8a',
@@ -27,8 +31,6 @@ function createCustomIcon(type: string, isSelected: boolean, hasSelection: boole
   const size = 36;
   const opacity = dimmed ? '0.7' : '1';
   const filter = dimmed ? 'grayscale(30%)' : 'none';
-  const border = '3px solid white';
-  const shadow = '0 4px 12px rgba(0,0,0,0.25)';
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -41,8 +43,8 @@ function createCustomIcon(type: string, isSelected: boolean, hasSelection: boole
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: ${shadow};
-        border: ${border};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        border: 3px solid white;
         opacity: ${opacity};
         filter: ${filter};
         transition: all 0.25s;
@@ -60,20 +62,6 @@ function formatPrice(price: number): string {
   return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 }
 
-function MapBoundsUpdater({ properties }: { properties: Property[] }) {
-  const map = useMap();
-  const prevCount = useRef<number | null>(null);
-  useEffect(() => {
-    if (properties.length === 0) return;
-    const count = properties.length;
-    if (prevCount.current === count) return;
-    prevCount.current = count;
-    const bounds = L.latLngBounds(properties.map((p) => [p.lat, p.lng]));
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-  }, [properties, map]);
-  return null;
-}
-
 interface PropertyMapProps {
   properties: Property[];
   selectedId: string | null;
@@ -81,6 +69,7 @@ interface PropertyMapProps {
   onDeselect?: () => void;
   onExpand?: (id: string) => void;
   isMobile?: boolean;
+  onBoundsChange?: (bounds: L.LatLngBounds) => void;
 }
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
@@ -94,7 +83,129 @@ function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
   return null;
 }
 
-export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, onExpand, isMobile = false }: PropertyMapProps) {
+function BoundsReporter({ onBoundsChange }: { onBoundsChange?: (bounds: L.LatLngBounds) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!onBoundsChange) return;
+    const report = () => onBoundsChange(map.getBounds());
+    map.on('moveend', report);
+    map.on('zoomend', report);
+    // Initial report
+    report();
+    return () => {
+      map.off('moveend', report);
+      map.off('zoomend', report);
+    };
+  }, [map, onBoundsChange]);
+  return null;
+}
+
+function MarkerClusterLayer({
+  properties, selectedId, onSelect, onExpand, isMobile
+}: {
+  properties: Property[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onExpand?: (id: string) => void;
+  isMobile: boolean;
+}) {
+  const map = useMap();
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const prevPropsRef = useRef<string>('');
+
+  useEffect(() => {
+    const key = properties.map(p => p.id).join(',') + '|' + (selectedId || '');
+    if (key === prevPropsRef.current && clusterRef.current) return;
+    prevPropsRef.current = key;
+
+    // Remove old cluster
+    if (clusterRef.current) {
+      map.removeLayer(clusterRef.current);
+    }
+
+    const cluster = (L as any).markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (c: any) => {
+        const count = c.getChildCount();
+        let size = 'small';
+        if (count >= 10) size = 'medium';
+        if (count >= 50) size = 'large';
+        return L.divIcon({
+          html: `<div class="cluster-icon cluster-${size}"><span>${count}</span></div>`,
+          className: 'custom-cluster',
+          iconSize: L.point(40, 40),
+        });
+      },
+    });
+
+    const hasSelection = !!selectedId;
+
+    properties.forEach((property) => {
+      const isSelected = selectedId === property.id;
+      const marker = L.marker([property.lat, property.lng], {
+        icon: createCustomIcon(property.type, isSelected, hasSelection),
+        zIndexOffset: isSelected ? 1000 : 0,
+      });
+
+      marker.on('click', () => onSelect(property.id));
+
+      if (!isMobile) {
+        const isMidia = property.type === 'midia';
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
+          <div style="padding:12px;min-width:220px;">
+            <img src="${getPropertyImage(property)}" alt="${property.title}" style="width:100%;height:112px;object-fit:cover;border-radius:8px;margin-bottom:8px;" />
+            <span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-bottom:6px;background:${typeColors[property.type]}18;color:${typeColors[property.type]};">
+              ${propertyTypeLabels[property.type]}
+            </span>
+            <h3 class="popup-title" style="font-weight:700;font-size:13px;line-height:1.3;cursor:pointer;margin:4px 0 2px;">${property.title}</h3>
+            <p style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;">📍 ${property.neighborhood}</p>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:11px;color:#666;">
+              <span>📐 ${property.area}m²</span>
+              ${!isMidia && property.bedrooms ? `<span>🛏️ ${property.bedrooms}</span>` : ''}
+              ${!isMidia && property.bathrooms ? `<span>🚿 ${property.bathrooms}</span>` : ''}
+              ${!isMidia && property.garageSpaces ? `<span>🚗 ${property.garageSpaces}</span>` : ''}
+              ${isMidia && property.mediaType ? `<span>${mediaTypeLabels[property.mediaType]}</span>` : ''}
+            </div>
+            <p style="font-weight:700;color:hsl(20,70%,48%);margin-top:8px;font-size:15px;">${formatPrice(property.price)}</p>
+            <a href="${getWhatsAppLink(property)}" target="_blank" rel="noopener noreferrer"
+              style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;background:#25D366;color:white;text-decoration:none;margin-top:8px;">
+              💬 WhatsApp
+            </a>
+          </div>
+        `;
+        const titleEl = popupContent.querySelector('.popup-title');
+        if (titleEl && onExpand) {
+          titleEl.addEventListener('click', () => onExpand(property.id));
+        }
+        marker.bindPopup(popupContent);
+      }
+
+      cluster.addLayer(marker);
+    });
+
+    map.addLayer(cluster);
+    clusterRef.current = cluster;
+
+    return () => {
+      if (clusterRef.current) {
+        map.removeLayer(clusterRef.current);
+        clusterRef.current = null;
+      }
+    };
+  }, [properties, selectedId, onSelect, onExpand, isMobile, map]);
+
+  return null;
+}
+
+function getPropertyImage_fn(property: Property): string {
+  return property.images[0] ?? '/placeholder.svg';
+}
+
+export default function PropertyMap({ properties, selectedId, onSelect, onDeselect, onExpand, isMobile = false, onBoundsChange }: PropertyMapProps) {
   return (
     <MapContainer
       center={[-25.0945, -50.1633]}
@@ -106,61 +217,15 @@ export default function PropertyMap({ properties, selectedId, onSelect, onDesele
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapBoundsUpdater properties={properties} />
       <MapClickHandler onDeselect={onDeselect} />
-      {properties.map((property) => {
-        const isSelected = selectedId === property.id;
-        const hasSelection = !!selectedId;
-        const isMidia = property.type === 'midia';
-        return (
-          <Marker
-            key={property.id}
-            position={[property.lat, property.lng]}
-            icon={createCustomIcon(property.type, isSelected, hasSelection)}
-            zIndexOffset={isSelected ? 1000 : 0}
-            eventHandlers={{ click: () => onSelect(property.id) }}
-          >
-            {!isMobile && (
-              <Popup>
-                <div className="p-3 min-w-[220px]">
-                  <img src={getPropertyImage(property)} alt={property.title} className="w-full h-28 object-cover rounded-lg mb-2" />
-                  <span
-                    className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1.5"
-                    style={{ background: typeColors[property.type] + '18', color: typeColors[property.type] }}
-                  >
-                    {propertyTypeLabels[property.type]}
-                  </span>
-                  <h3
-                    className="font-bold text-sm text-foreground leading-tight cursor-pointer hover:text-primary transition-colors"
-                    onClick={() => onExpand?.(property.id)}
-                  >{property.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <MapPin size={11} /> {property.neighborhood}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Ruler size={11} /> {property.area}m²</span>
-                    {!isMidia && property.bedrooms && <span className="flex items-center gap-1"><BedDouble size={11} /> {property.bedrooms}</span>}
-                    {!isMidia && property.bathrooms && <span className="flex items-center gap-1"><Bath size={11} /> {property.bathrooms}</span>}
-                    {!isMidia && property.garageSpaces && <span className="flex items-center gap-1"><Car size={11} /> {property.garageSpaces}</span>}
-                    {isMidia && property.mediaType && (
-                      <span className="text-xs font-medium">{mediaTypeLabels[property.mediaType]}</span>
-                    )}
-                  </div>
-                  <p className="font-bold text-primary mt-2 text-base">{formatPrice(property.price)}</p>
-                  <a
-                    href={getWhatsAppLink(property)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-[#25D366] hover:bg-[#20bd5a] text-white transition-colors"
-                  >
-                    <MessageCircle size={12} /> WhatsApp
-                  </a>
-                </div>
-              </Popup>
-            )}
-          </Marker>
-        );
-      })}
+      <BoundsReporter onBoundsChange={onBoundsChange} />
+      <MarkerClusterLayer
+        properties={properties}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        onExpand={onExpand}
+        isMobile={isMobile}
+      />
     </MapContainer>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
+import L from 'leaflet';
 import logoImg from '@/assets/logo.png';
-import { PropertyType, WHATSAPP_NUMBER } from '@/data/properties';
+import { PropertyType, ListingType, WHATSAPP_NUMBER } from '@/data/properties';
 import { useProperties } from '@/hooks/useProperties';
 import PropertyMap from '@/components/PropertyMap';
 import PropertyCard from '@/components/PropertyCard';
@@ -15,12 +16,14 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { data: properties = [], isLoading } = useProperties();
   const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa']);
+  const [activeListingTypes, setActiveListingTypes] = useState<ListingType[]>(['venda', 'aluguel']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
   const [detailProperty, setDetailProperty] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
   const [firstInteraction, setFirstInteraction] = useState(true);
+  const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
   // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -29,9 +32,11 @@ const Index = () => {
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
       if (!activeTypes.includes(p.type)) return false;
+      if (!activeListingTypes.includes(p.listingType)) return false;
       if (search && !(
         p.title.toLowerCase().includes(search.toLowerCase()) ||
         p.neighborhood.toLowerCase().includes(search.toLowerCase()) ||
@@ -51,17 +56,21 @@ const Index = () => {
       if (af.areaMax != null && p.area > af.areaMax) return false;
       return true;
     });
-  }, [activeTypes, search, advancedFilters]);
+  }, [properties, activeTypes, activeListingTypes, search, advancedFilters]);
+
+  // Properties visible on map (for sidebar list)
+  const visibleProperties = useMemo(() => {
+    if (!mapBounds) return filteredProperties;
+    return filteredProperties.filter((p) => mapBounds.contains([p.lat, p.lng]));
+  }, [filteredProperties, mapBounds]);
 
   const toggleType = useCallback((type: PropertyType) => {
     if (firstInteraction) {
-      // First click: select only the clicked type
       setFirstInteraction(false);
       setActiveTypes([type]);
     } else {
       setActiveTypes((prev) => {
         if (prev.includes(type)) {
-          // Don't allow deselecting all
           if (prev.length === 1) return prev;
           return prev.filter((t) => t !== type);
         }
@@ -69,6 +78,16 @@ const Index = () => {
       });
     }
   }, [firstInteraction]);
+
+  const toggleListingType = useCallback((lt: ListingType) => {
+    setActiveListingTypes((prev) => {
+      if (prev.includes(lt)) {
+        if (prev.length === 1) return prev; // don't deselect all
+        return prev.filter((t) => t !== lt);
+      }
+      return [...prev, lt];
+    });
+  }, []);
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
@@ -81,6 +100,10 @@ const Index = () => {
     }
   }, [isMobile]);
 
+  const handleBoundsChange = useCallback((bounds: L.LatLngBounds) => {
+    setMapBounds(bounds);
+  }, []);
+
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
@@ -90,7 +113,6 @@ const Index = () => {
   if (isMobile) {
     return (
       <div className="h-[100dvh] flex flex-col bg-background">
-        {/* Header */}
         <header className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/80 backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center">
             <img src={logoImg} alt="Kompas" className="h-7 w-auto" />
@@ -118,18 +140,18 @@ const Index = () => {
           </div>
         </header>
 
-        {/* Filters */}
         <div className="px-3 py-2 border-b border-border bg-card flex-shrink-0">
           <PropertyFilters
             activeTypes={activeTypes}
             onToggleType={toggleType}
-            total={filteredProperties.length}
+            activeListingTypes={activeListingTypes}
+            onToggleListingType={toggleListingType}
+            total={visibleProperties.length}
             advancedFilters={advancedFilters}
             onAdvancedFiltersChange={setAdvancedFilters}
           />
         </div>
 
-        {/* Map + draggable bottom sheet */}
         <div className="flex-1 relative overflow-hidden" ref={containerRef}>
           <div className="absolute inset-0">
             <PropertyMap
@@ -137,6 +159,7 @@ const Index = () => {
               selectedId={selectedId}
               onSelect={handleSelect}
               onDeselect={() => setSelectedId(null)}
+              onBoundsChange={handleBoundsChange}
               isMobile
             />
           </div>
@@ -205,13 +228,13 @@ const Index = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredProperties.length === 0 ? (
+                  {visibleProperties.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                       <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
                     </div>
                   ) : (
-                    filteredProperties.map((property) => (
+                    visibleProperties.map((property) => (
                       <PropertyCard
                         key={property.id}
                         property={property}
@@ -273,20 +296,22 @@ const Index = () => {
             <PropertyFilters
               activeTypes={activeTypes}
               onToggleType={toggleType}
-              total={filteredProperties.length}
+              activeListingTypes={activeListingTypes}
+              onToggleListingType={toggleListingType}
+              total={visibleProperties.length}
               advancedFilters={advancedFilters}
               onAdvancedFiltersChange={setAdvancedFilters}
             />
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {filteredProperties.length === 0 ? (
+            {visibleProperties.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <MapPin size={32} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
                 <p className="text-sm font-medium">Nenhum imóvel encontrado</p>
                 <p className="text-xs mt-1">Tente ajustar os filtros</p>
               </div>
             ) : (
-              filteredProperties.map((property) => (
+              visibleProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
                   ref={(el) => { cardRefs.current[property.id] = el; }}
@@ -307,6 +332,7 @@ const Index = () => {
             onSelect={handleSelect}
             onDeselect={() => setSelectedId(null)}
             onExpand={(id) => setDetailProperty(id)}
+            onBoundsChange={handleBoundsChange}
           />
         </main>
       </div>
