@@ -7,9 +7,10 @@ interface ImageCarouselProps {
   className?: string;
   onOpenFullscreen?: (index: number) => void;
   disableDrag?: boolean;
+  showControls?: boolean;
 }
 
-export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false }: ImageCarouselProps) {
+export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, disableDrag = false, showControls = true }: ImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const total = images.length;
 
