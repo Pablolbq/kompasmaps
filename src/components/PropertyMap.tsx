@@ -332,8 +332,17 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
       const property = properties.find(p => p.id === id);
       if (!property || !mapRef.current) return;
 
-      mapRef.current.setView([property.lat, property.lng], 16, { animate: true });
-      openPropertyPopup(id, mapRef.current);
+      const mapInstance = mapRef.current;
+      let opened = false;
+      const attemptOpen = () => {
+        if (opened) return;
+        opened = true;
+        openPropertyPopup(id, mapInstance);
+      };
+
+      mapInstance.once('moveend', attemptOpen);
+      mapInstance.setView([property.lat, property.lng], 16, { animate: true });
+      setTimeout(attemptOpen, 320);
     },
   }), [properties]);
 
