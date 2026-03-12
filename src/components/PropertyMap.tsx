@@ -216,7 +216,7 @@ function MarkerClusterLayer({
         if (titleEl && onExpand) {
           titleEl.addEventListener('click', () => onExpand(property.id));
         }
-        marker.bindPopup(popupContent, { autoClose: true, closeOnClick: false });
+        marker.bindPopup(popupContent, { autoClose: true });
       }
 
       markersRef.current.set(property.id, marker);
