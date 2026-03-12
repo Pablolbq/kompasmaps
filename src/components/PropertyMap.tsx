@@ -111,17 +111,20 @@ function MarkerClusterLayer({
 }) {
   const map = useMap();
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const prevPropsRef = useRef<string>('');
+  const openPopupId = useRef<string | null>(null);
 
+  // Rebuild cluster only when properties change
   useEffect(() => {
-    const key = properties.map(p => p.id).join(',') + '|' + (selectedId || '');
+    const key = properties.map(p => p.id).join(',');
     if (key === prevPropsRef.current && clusterRef.current) return;
     prevPropsRef.current = key;
 
-    // Remove old cluster
     if (clusterRef.current) {
       map.removeLayer(clusterRef.current);
     }
+    markersRef.current.clear();
 
     const cluster = (L as any).markerClusterGroup({
       maxClusterRadius: 50,
@@ -141,16 +144,29 @@ function MarkerClusterLayer({
       },
     });
 
-    const hasSelection = !!selectedId;
-
     properties.forEach((property) => {
-      const isSelected = selectedId === property.id;
       const marker = L.marker([property.lat, property.lng], {
-        icon: createCustomIcon(property.type, isSelected, hasSelection),
-        zIndexOffset: isSelected ? 1000 : 0,
+        icon: createCustomIcon(property.type, false, false),
       });
 
-      marker.on('click', () => onSelect(property.id));
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        if (openPopupId.current === property.id) {
+          marker.closePopup();
+          openPopupId.current = null;
+          onSelect(property.id);
+        } else {
+          openPopupId.current = property.id;
+          onSelect(property.id);
+          marker.openPopup();
+        }
+      });
+
+      marker.on('popupclose', () => {
+        if (openPopupId.current === property.id) {
+          openPopupId.current = null;
+        }
+      });
 
       if (!isMobile) {
         const isMidia = property.type === 'midia';
@@ -181,9 +197,10 @@ function MarkerClusterLayer({
         if (titleEl && onExpand) {
           titleEl.addEventListener('click', () => onExpand(property.id));
         }
-        marker.bindPopup(popupContent);
+        marker.bindPopup(popupContent, { autoClose: true, closeOnClick: false });
       }
 
+      markersRef.current.set(property.id, marker);
       cluster.addLayer(marker);
     });
 
@@ -196,7 +213,21 @@ function MarkerClusterLayer({
         clusterRef.current = null;
       }
     };
-  }, [properties, selectedId, onSelect, onExpand, isMobile, map]);
+  }, [properties, onSelect, onExpand, isMobile, map]);
+
+  // Update icons when selection changes (without rebuilding cluster)
+  useEffect(() => {
+    const hasSelection = !!selectedId;
+    markersRef.current.forEach((marker, id) => {
+      const property = properties.find(p => p.id === id);
+      if (property) {
+        const isSelected = selectedId === id;
+        marker.setIcon(createCustomIcon(property.type, isSelected, hasSelection));
+        if (isSelected) marker.setZIndexOffset(1000);
+        else marker.setZIndexOffset(0);
+      }
+    });
+  }, [selectedId, properties]);
 
   return null;
 }

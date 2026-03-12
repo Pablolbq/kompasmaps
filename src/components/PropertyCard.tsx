@@ -38,7 +38,7 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
       }`}
     >
       <button onClick={onClick} className="w-full text-left">
-        <ImageCarousel images={property.images} alt={property.title} className="w-full h-36" />
+        <ImageCarousel images={property.images} alt={property.title} className="w-full h-36" disableDrag />
         <div className="relative -mt-6 ml-2.5">
           <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
             {propertyTypeLabels[property.type]}
