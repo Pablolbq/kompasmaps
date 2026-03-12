@@ -107,12 +107,16 @@ const Index = () => {
   }, []);
 
   const focusMapProperty = useCallback((id: string) => {
+    setSelectedId(id);
+
     if (mapRef.current) {
       mapRef.current.focusProperty(id);
+      setTimeout(() => mapRef.current?.focusProperty(id), 320);
       return;
     }
 
     setFocusPropertyId(id);
+    setTimeout(() => setFocusPropertyId(id), 320);
   }, []);
 
   const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
