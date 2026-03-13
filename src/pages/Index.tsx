@@ -229,41 +229,24 @@ const Index = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto px-3 pb-3">
-              {selectedProperty ? (
-                <div>
-                  <button
-                    onClick={() => setSelectedId(null)}
-                    className="mb-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X size={14} /> Voltar à lista
-                  </button>
-                  <PropertyCard
-                    property={selectedProperty}
-                    isSelected={true}
-                    onClick={() => setDetailProperty(selectedProperty.id)}
-                    onExpand={() => setDetailProperty(selectedProperty.id)}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {visibleProperties.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
-                      <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
-                    </div>
-                  ) : (
-                    visibleProperties.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        isSelected={selectedId === property.id}
-                        onClick={() => handleSelect(property.id)}
-                        onExpand={() => setDetailProperty(property.id)}
-                      />
-                    ))
-                  )}
-                </div>
-              )}
+              <div className="space-y-3">
+                {visibleProperties.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
+                  </div>
+                ) : (
+                  visibleProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      isSelected={selectedId === property.id}
+                      onClick={() => handleSelect(property.id)}
+                      onExpand={() => setDetailProperty(property.id)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
