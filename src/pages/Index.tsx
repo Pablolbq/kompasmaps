@@ -23,6 +23,7 @@ const Index = () => {
   const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
   const [firstInteraction, setFirstInteraction] = useState(true);
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
+  const [mobileFiltersCollapsed, setMobileFiltersCollapsed] = useState(false);
   // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -31,7 +32,6 @@ const Index = () => {
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const mapRef = useRef<PropertyMapHandle>(null);
-  const [focusPropertyId, setFocusPropertyId] = useState<string | null>(null);
 
   // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
