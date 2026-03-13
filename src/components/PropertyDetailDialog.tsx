@@ -35,18 +35,25 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
     }
   }, [open]);
 
-  // Quando lightbox abre, desabilita pointer-events do overlay do Dialog
+  // CORREÇÃO CRÍTICA: Quando o lightbox abre, desativamos o pointer-events de todos os overlays do Radix
   useEffect(() => {
     if (lightboxIndex !== null) {
-      const overlay = document.querySelector('[role="presentation"]');
-      if (overlay) {
-        (overlay as HTMLElement).style.pointerEvents = "none";
-      }
+      // Desativa cliques no overlay do Dialog para que o Lightbox receba os cliques
+      const overlays = document.querySelectorAll('[data-state="open"]');
+      overlays.forEach((el) => {
+        if (el.classList.contains("fixed")) {
+          (el as HTMLElement).style.pointerEvents = "none";
+        }
+      });
+      // Garante que o body não tenha pointer-events: none (o Radix as vezes coloca isso)
+      document.body.style.pointerEvents = "auto";
     } else {
-      const overlay = document.querySelector('[role="presentation"]');
-      if (overlay) {
-        (overlay as HTMLElement).style.pointerEvents = "auto";
-      }
+      const overlays = document.querySelectorAll('[data-state="open"]');
+      overlays.forEach((el) => {
+        if (el.classList.contains("fixed")) {
+          (el as HTMLElement).style.pointerEvents = "auto";
+        }
+      });
     }
   }, [lightboxIndex]);
 
@@ -58,6 +65,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
       <Dialog
         open={open}
         onOpenChange={(o) => {
+          // Só fecha o dialog se o lightbox estiver fechado
           if (!o && lightboxIndex === null) {
             onClose();
           }
@@ -148,7 +156,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
         </DialogContent>
       </Dialog>
 
-      {/* Renderiza o lightbox via portal com z-index máximo, completamente fora do Dialog */}
+      {/* Lightbox renderizado fora do Dialog para evitar captura de eventos do Radix UI */}
       {lightboxIndex !== null &&
         ReactDOM.createPortal(
           <ImageLightbox images={property.images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />,
