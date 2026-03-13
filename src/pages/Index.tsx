@@ -107,11 +107,11 @@ const Index = () => {
 
   const focusMapProperty = useCallback((id: string) => {
     setSelectedId(id);
-    setFocusPropertyId(null);
-    setTimeout(() => setFocusPropertyId(id), 0);
+    requestAnimationFrame(() => {
+      mapRef.current?.focusProperty(id);
+    });
   }, []);
 
-  const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
   const contactLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de falar com vocês.')}`;
