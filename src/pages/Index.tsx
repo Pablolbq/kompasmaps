@@ -148,15 +148,26 @@ const Index = () => {
         </header>
 
         <div className="px-3 py-2 border-b border-border bg-card flex-shrink-0">
-          <PropertyFilters
-            activeTypes={activeTypes}
-            onToggleType={toggleType}
-            activeListingTypes={activeListingTypes}
-            onToggleListingType={toggleListingType}
-            total={visibleProperties.length}
-            advancedFilters={advancedFilters}
-            onAdvancedFiltersChange={setAdvancedFilters}
-          />
+          <button
+            type="button"
+            onClick={() => setMobileFiltersCollapsed((prev) => !prev)}
+            className="w-full flex items-center justify-between py-1 text-sm font-semibold text-foreground"
+          >
+            <span>Filtros</span>
+            {mobileFiltersCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          </button>
+
+          {!mobileFiltersCollapsed && (
+            <PropertyFilters
+              activeTypes={activeTypes}
+              onToggleType={toggleType}
+              activeListingTypes={activeListingTypes}
+              onToggleListingType={toggleListingType}
+              total={visibleProperties.length}
+              advancedFilters={advancedFilters}
+              onAdvancedFiltersChange={setAdvancedFilters}
+            />
+          )}
         </div>
 
         <div className="flex-1 relative overflow-hidden" ref={containerRef}>
