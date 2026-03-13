@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface ImageCarouselProps {
