@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
-import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from "@/data/properties";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone, MapPinned } from "lucide-react";
-import ImageCarousel, { ImageLightbox } from "./ImageCarousel";
+import { useEffect, useState } from 'react';
+import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone, MapPinned } from 'lucide-react';
+import ImageCarousel, { ImageLightbox } from './ImageCarousel';
 
 const SW = 1.5;
 
 const typeColors: Record<string, string> = {
-  casa: "bg-badge-casa/10 text-badge-casa",
-  apartamento: "bg-badge-apartamento/10 text-badge-apartamento",
-  terreno: "bg-badge-terreno/10 text-badge-terreno",
-  comercial: "bg-badge-comercial/10 text-badge-comercial",
-  midia: "bg-badge-midia/10 text-badge-midia",
+  casa: 'bg-badge-casa/10 text-badge-casa',
+  apartamento: 'bg-badge-apartamento/10 text-badge-apartamento',
+  terreno: 'bg-badge-terreno/10 text-badge-terreno',
+  comercial: 'bg-badge-comercial/10 text-badge-comercial',
+  midia: 'bg-badge-midia/10 text-badge-midia',
 };
 
 function formatPrice(price: number): string {
-  return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 }
 
 interface Props {
@@ -35,7 +35,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
   }, [open]);
 
   if (!property) return null;
-  const isMidia = property.type === "midia";
+  const isMidia = property.type === 'midia';
 
   return (
     <>
@@ -47,10 +47,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
           }
         }}
       >
-        <DialogContent
-          aria-describedby={undefined}
-          className="max-w-xl p-0 overflow-hidden max-h-[85vh] [&>button.absolute]:hidden z-50"
-        >
+        <DialogContent aria-describedby={undefined} className="max-w-xl p-0 overflow-hidden max-h-[85vh] [&>button.absolute]:hidden">
           <DialogTitle className="sr-only">{property.title}</DialogTitle>
           <div className="overflow-y-auto max-h-[85vh]">
             <ImageCarousel
@@ -65,9 +62,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
             <div className="p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <span
-                    className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}
-                  >
+                  <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
                     {propertyTypeLabels[property.type]}
                   </span>
                   <h2 className="font-bold text-lg text-foreground mt-1.5 leading-tight">{property.title}</h2>
@@ -79,28 +74,12 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
               </div>
 
               <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                <span className="flex items-center gap-1.5">
-                  <Ruler size={14} strokeWidth={SW} /> {property.area}m²
-                </span>
-                {!isMidia && property.bedrooms != null && (
-                  <span className="flex items-center gap-1.5">
-                    <BedDouble size={14} strokeWidth={SW} /> {property.bedrooms} quartos
-                  </span>
-                )}
-                {!isMidia && property.bathrooms != null && (
-                  <span className="flex items-center gap-1.5">
-                    <Bath size={14} strokeWidth={SW} /> {property.bathrooms} banheiros
-                  </span>
-                )}
-                {!isMidia && property.garageSpaces != null && (
-                  <span className="flex items-center gap-1.5">
-                    <Car size={14} strokeWidth={SW} /> {property.garageSpaces} vagas
-                  </span>
-                )}
+                <span className="flex items-center gap-1.5"><Ruler size={14} strokeWidth={SW} /> {property.area}m²</span>
+                {!isMidia && property.bedrooms != null && <span className="flex items-center gap-1.5"><BedDouble size={14} strokeWidth={SW} /> {property.bedrooms} quartos</span>}
+                {!isMidia && property.bathrooms != null && <span className="flex items-center gap-1.5"><Bath size={14} strokeWidth={SW} /> {property.bathrooms} banheiros</span>}
+                {!isMidia && property.garageSpaces != null && <span className="flex items-center gap-1.5"><Car size={14} strokeWidth={SW} /> {property.garageSpaces} vagas</span>}
                 {isMidia && property.mediaType && (
-                  <span className="flex items-center gap-1.5">
-                    <Megaphone size={14} strokeWidth={SW} /> {mediaTypeLabels[property.mediaType]}
-                  </span>
+                  <span className="flex items-center gap-1.5"><Megaphone size={14} strokeWidth={SW} /> {mediaTypeLabels[property.mediaType]}</span>
                 )}
               </div>
 
@@ -133,7 +112,11 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
       </Dialog>
 
       {lightboxIndex !== null && (
-        <ImageLightbox images={property.images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+        <ImageLightbox
+          images={property.images}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </>
   );

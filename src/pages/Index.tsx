@@ -1,41 +1,29 @@
-import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from "react";
-import L from "leaflet";
-import logoImg from "@/assets/logo.png";
-import { PropertyType, ListingType, WHATSAPP_NUMBER } from "@/data/properties";
-import { useProperties } from "@/hooks/useProperties";
-import PropertyMap, { PropertyMapHandle } from "@/components/PropertyMap";
-import PropertyCard from "@/components/PropertyCard";
-import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from "@/components/PropertyFilters";
-import PropertyDetailDialog from "@/components/PropertyDetailDialog";
-import PropertyDetailMobile from "@/components/PropertyDetailMobile";
-import { Search, MapPin, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from 'react';
+import L from 'leaflet';
+import logoImg from '@/assets/logo.png';
+import { PropertyType, ListingType, WHATSAPP_NUMBER } from '@/data/properties';
+import { useProperties } from '@/hooks/useProperties';
+import PropertyMap, { PropertyMapHandle } from '@/components/PropertyMap';
+import PropertyCard from '@/components/PropertyCard';
+import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
+import PropertyDetailDialog from '@/components/PropertyDetailDialog';
+import PropertyDetailMobile from '@/components/PropertyDetailMobile';
+import { Search, MapPin, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const isMobile = useIsMobile();
   const { data: properties = [], isLoading } = useProperties();
-  const [activeTypes, setActiveTypes] = useState<PropertyType[]>(["casa"]);
-  const [activeListingTypes, setActiveListingTypes] = useState<ListingType[]>(["venda", "aluguel"]);
+  const [activeTypes, setActiveTypes] = useState<PropertyType[]>(['casa']);
+  const [activeListingTypes, setActiveListingTypes] = useState<ListingType[]>(['venda', 'aluguel']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(emptyAdvancedFilters);
   const [detailProperty, setDetailProperty] = useState<string | null>(null);
-  const [sheetMode, setSheetMode] = useState<"half" | "full" | "mini">("half");
+  const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
   const [firstInteraction, setFirstInteraction] = useState(true);
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
   const [mobileFiltersCollapsed, setMobileFiltersCollapsed] = useState(false);
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem("kompas-favorites");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
-      localStorage.setItem("kompas-favorites", JSON.stringify(next));
-      return next;
-    });
-  }, []);
   // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -50,18 +38,14 @@ const Index = () => {
     return properties.filter((p) => {
       if (!activeTypes.includes(p.type)) return false;
       if (!activeListingTypes.includes(p.listingType)) return false;
-      if (
-        search &&
-        !(
-          p.title.toLowerCase().includes(search.toLowerCase()) ||
-          p.neighborhood.toLowerCase().includes(search.toLowerCase()) ||
-          p.address.toLowerCase().includes(search.toLowerCase())
-        )
-      )
-        return false;
+      if (search && !(
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.neighborhood.toLowerCase().includes(search.toLowerCase()) ||
+        p.address.toLowerCase().includes(search.toLowerCase())
+      )) return false;
 
       // Advanced filters don't apply to mídia
-      if (p.type === "midia") return true;
+      if (p.type === 'midia') return true;
 
       const af = advancedFilters;
       if (af.priceMin != null && p.price < af.priceMin) return false;
@@ -81,23 +65,20 @@ const Index = () => {
     return filteredProperties.filter((p) => mapBounds.contains([p.lat, p.lng]));
   }, [filteredProperties, mapBounds]);
 
-  const toggleType = useCallback(
-    (type: PropertyType) => {
-      if (firstInteraction) {
-        setFirstInteraction(false);
-        setActiveTypes([type]);
-      } else {
-        setActiveTypes((prev) => {
-          if (prev.includes(type)) {
-            if (prev.length === 1) return prev;
-            return prev.filter((t) => t !== type);
-          }
-          return [...prev, type];
-        });
-      }
-    },
-    [firstInteraction],
-  );
+  const toggleType = useCallback((type: PropertyType) => {
+    if (firstInteraction) {
+      setFirstInteraction(false);
+      setActiveTypes([type]);
+    } else {
+      setActiveTypes((prev) => {
+        if (prev.includes(type)) {
+          if (prev.length === 1) return prev;
+          return prev.filter((t) => t !== type);
+        }
+        return [...prev, type];
+      });
+    }
+  }, [firstInteraction]);
 
   const toggleListingType = useCallback((lt: ListingType) => {
     setActiveListingTypes((prev) => {
@@ -109,23 +90,16 @@ const Index = () => {
     });
   }, []);
 
-  const handleSelect = useCallback(
-    (id: string) => {
-      setSelectedId(id);
-      if (isMobile) {
-        setSheetMode((m) => (m === "mini" ? "half" : m));
-      } else {
-        setTimeout(() => {
-          cardRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 100);
-      }
-      // Also focus map when selected from sidebar
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    if (isMobile) {
+      setSheetMode((m) => m === 'mini' ? 'half' : m);
+    } else {
       setTimeout(() => {
-        mapRef.current?.focusProperty(id);
-      }, 50);
-    },
-    [isMobile],
-  );
+        cardRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [isMobile]);
 
   const handleBoundsChange = useCallback((bounds: L.LatLngBounds) => {
     setMapBounds(bounds);
@@ -138,9 +112,9 @@ const Index = () => {
     });
   }, []);
 
-  const detailProp = detailProperty ? filteredProperties.find((p) => p.id === detailProperty) : null;
+  const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
-  const contactLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Gostaria de falar com vocês.")}`;
+  const contactLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de falar com vocês.')}`;
 
   // ─── MOBILE LAYOUT ────────────────────────────────────
   if (isMobile) {
@@ -152,11 +126,7 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search
-                size={13}
-                strokeWidth={1.5}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
+              <Search size={13} strokeWidth={1.5} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Buscar..."
@@ -216,22 +186,17 @@ const Index = () => {
             className="absolute left-0 right-0 z-[1000] bg-card rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-border flex flex-col will-change-transform"
             style={{
               top: 0,
-              height: "100%",
-              transform:
-                dragTop !== null
-                  ? `translateY(${dragTop}px)`
-                  : sheetMode === "full"
-                    ? "translateY(0)"
-                    : sheetMode === "half"
-                      ? "translateY(50%)"
-                      : `translateY(calc(100% - 3rem))`,
-              transition: dragTop !== null ? "none" : "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)",
+              height: '100%',
+              transform: dragTop !== null
+                ? `translateY(${dragTop}px)`
+                : sheetMode === 'full' ? 'translateY(0)' : sheetMode === 'half' ? 'translateY(50%)' : `translateY(calc(100% - 3rem))`,
+              transition: dragTop !== null ? 'none' : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
             }}
           >
             <div
               className="flex justify-center py-5 flex-shrink-0 cursor-grab touch-none"
               onTouchStart={(e: RTE<HTMLDivElement>) => {
-                const sheet = e.currentTarget.parentElement as HTMLElement;
+                const sheet = (e.currentTarget.parentElement as HTMLElement);
                 touchStartY.current = e.touches[0].clientY;
                 const matrix = new DOMMatrix(getComputedStyle(sheet).transform);
                 sheetStartTop.current = matrix.m42;
@@ -252,9 +217,9 @@ const Index = () => {
                 }
                 const containerH = containerRef.current.clientHeight;
                 const ratio = dragTop / containerH;
-                if (ratio < 0.25) setSheetMode("full");
-                else if (ratio < 0.75) setSheetMode("half");
-                else setSheetMode("mini");
+                if (ratio < 0.25) setSheetMode('full');
+                else if (ratio < 0.75) setSheetMode('half');
+                else setSheetMode('mini');
                 setDragTop(null);
                 touchStartY.current = null;
                 sheetStartTop.current = null;
@@ -276,8 +241,6 @@ const Index = () => {
                       key={property.id}
                       property={property}
                       isSelected={selectedId === property.id}
-                      isFavorite={favorites.includes(property.id)}
-                      onToggleFavorite={() => toggleFavorite(property.id)}
                       onClick={() => handleSelect(property.id)}
                       onExpand={() => setDetailProperty(property.id)}
                     />
@@ -288,7 +251,12 @@ const Index = () => {
           </div>
         </div>
 
-        {detailProp && <PropertyDetailMobile property={detailProp} onBack={() => setDetailProperty(null)} />}
+        {detailProp && (
+          <PropertyDetailMobile
+            property={detailProp}
+            onBack={() => setDetailProperty(null)}
+          />
+        )}
       </div>
     );
   }
@@ -302,11 +270,7 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search
-              size={15}
-              strokeWidth={1.5}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+            <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Buscar bairro, rua..."
@@ -351,22 +315,18 @@ const Index = () => {
               visibleProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
-                  ref={(el) => {
-                    cardRefs.current[property.id] = el;
-                  }}
+                  ref={(el) => { cardRefs.current[property.id] = el; }}
                   property={property}
                   isSelected={selectedId === property.id}
-                  isFavorite={favorites.includes(property.id)}
-                  onToggleFavorite={() => toggleFavorite(property.id)}
-                  onClick={() => {
-                    handleSelect(property.id);
-                    setDetailProperty(property.id);
-                    focusMapProperty(property.id);
-                  }}
-                  onExpand={() => {
-                    setDetailProperty(property.id);
-                    focusMapProperty(property.id);
-                  }}
+                   onClick={() => {
+                     handleSelect(property.id);
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
+                   onExpand={() => {
+                     setDetailProperty(property.id);
+                     focusMapProperty(property.id);
+                   }}
                 />
               ))
             )}
@@ -389,24 +349,21 @@ const Index = () => {
       <PropertyDetailDialog
         property={detailProp ?? null}
         open={!!detailProperty}
-        onClose={() => {
-          const closingId = detailProperty;
-          setDetailProperty(null);
+         onClose={() => {
+           const closingId = detailProperty;
+           setDetailProperty(null);
 
-          if (closingId) {
-            setSelectedId(closingId);
-            // Ensure map focus and popup after closing dialog
-            setTimeout(() => {
-              focusMapProperty(closingId);
-            }, 200);
-          }
-        }}
-        onViewOnMap={(id) => {
-          setDetailProperty(null);
-          setTimeout(() => {
-            focusMapProperty(id);
-          }, 50);
-        }}
+           if (closingId) {
+             setSelectedId(closingId);
+             setTimeout(() => {
+               focusMapProperty(closingId);
+             }, 260);
+           }
+         }}
+         onViewOnMap={(id) => {
+           setDetailProperty(null);
+           focusMapProperty(id);
+         }}
       />
     </div>
   );
