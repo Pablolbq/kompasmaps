@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect, forwardRef } from "react";
+import { createPortal } from "react-dom";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface ImageCarouselProps {
   images: string[];
@@ -13,7 +13,16 @@ interface ImageCarouselProps {
   hideZoom?: boolean;
 }
 
-export default function ImageCarousel({ images, alt, className = '', onOpenFullscreen, onClickCenter, disableDrag = false, showControls = true, hideZoom = false }: ImageCarouselProps) {
+export default function ImageCarousel({
+  images,
+  alt,
+  className = "",
+  onOpenFullscreen,
+  onClickCenter,
+  disableDrag = false,
+  showControls = true,
+  hideZoom = false,
+}: ImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const total = images.length;
   const [dragOffset, setDragOffset] = useState(0);
@@ -21,9 +30,12 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
   const startX = useRef(0);
   const isPointerDown = useRef(false);
 
-  const goTo = useCallback((index: number) => {
-    setCurrent(Math.max(0, Math.min(total - 1, index)));
-  }, [total]);
+  const goTo = useCallback(
+    (index: number) => {
+      setCurrent(Math.max(0, Math.min(total - 1, index)));
+    },
+    [total],
+  );
 
   useEffect(() => {
     setCurrent(0);
@@ -32,14 +44,17 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
     dragging.current = false;
   }, [alt, total]);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (disableDrag) return;
-    if ((e.target as HTMLElement).closest('button')) return;
-    dragging.current = false;
-    isPointerDown.current = true;
-    startX.current = e.clientX;
-    setDragOffset(0);
-  }, [disableDrag]);
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (disableDrag) return;
+      if ((e.target as HTMLElement).closest("button")) return;
+      dragging.current = false;
+      isPointerDown.current = true;
+      startX.current = e.clientX;
+      setDragOffset(0);
+    },
+    [disableDrag],
+  );
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isPointerDown.current) return;
@@ -79,14 +94,17 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
       onPointerCancel={onPointerUp}
-      style={{ cursor: disableDrag ? 'pointer' : dragging.current ? 'grabbing' : 'grab', touchAction: disableDrag ? 'auto' : 'pan-y' }}
+      style={{
+        cursor: disableDrag ? "pointer" : dragging.current ? "grabbing" : "grab",
+        touchAction: disableDrag ? "auto" : "pan-y",
+      }}
     >
       <div
         className="flex h-full"
         style={{
           width: `${total * 100}%`,
           transform: `translateX(calc(${translateX}% + ${dragOffset}px))`,
-          transition: dragOffset !== 0 ? 'none' : 'transform 0.3s ease-out',
+          transition: dragOffset !== 0 ? "none" : "transform 0.3s ease-out",
         }}
       >
         {images.map((src, i) => (
@@ -146,7 +164,7 @@ export default function ImageCarousel({ images, alt, className = '', onOpenFulls
                   e.stopPropagation();
                   setCurrent(i);
                 }}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-white w-3' : 'bg-white/50'}`}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? "bg-white w-3" : "bg-white/50"}`}
                 aria-label={`Ir para foto ${i + 1}`}
               />
             ))}
@@ -175,9 +193,12 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
   const startX = useRef(0);
   const pointerId = useRef<number | null>(null);
 
-  const goTo = useCallback((index: number) => {
-    setCurrent(Math.max(0, Math.min(total - 1, index)));
-  }, [total]);
+  const goTo = useCallback(
+    (index: number) => {
+      setCurrent(Math.max(0, Math.min(total - 1, index)));
+    },
+    [total],
+  );
 
   useEffect(() => {
     setCurrent(safeStartIndex);
@@ -189,8 +210,8 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
 
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
     return () => {
       document.body.style.overflow = prevBodyOverflow;
@@ -200,16 +221,16 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') goTo(current + 1);
-      if (e.key === 'ArrowLeft') goTo(current - 1);
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") goTo(current + 1);
+      if (e.key === "ArrowLeft") goTo(current - 1);
     };
 
-    window.addEventListener('keydown', handler, true);
-    return () => window.removeEventListener('keydown', handler, true);
+    window.addEventListener("keydown", handler, true);
+    return () => window.removeEventListener("keydown", handler, true);
   }, [current, goTo, onClose]);
 
-  if (total === 0 || typeof document === 'undefined') return null;
+  if (total === 0 || typeof document === "undefined") return null;
 
   const handleDragEnd = (clientX: number) => {
     if (pointerId.current === null) return;
@@ -228,7 +249,7 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
   return createPortal(
     <div
       ref={ref}
-      className="fixed inset-0 z-[1200] bg-foreground/20 backdrop-blur-[1px] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       onPointerDown={(e) => {
@@ -241,13 +262,10 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
         className="relative w-full max-w-[45rem] h-[min(90vh,800px)] flex items-center justify-center"
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <img
-          src={images[current]}
-          alt={`Foto ${current + 1}`}
-          className="w-full h-full object-contain rounded-xl"
-          draggable={false}
+        <div
+          className="w-full h-full flex items-center justify-center"
           onPointerDown={(e) => {
-            if ((e.target as HTMLElement).closest('button')) return;
+            if ((e.target as HTMLElement).closest("button")) return;
             pointerId.current = e.pointerId;
             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
             startX.current = e.clientX;
@@ -271,11 +289,18 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
           }}
           style={{
             transform: `translateX(${dragOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.24s ease-out',
-            touchAction: 'none',
-            cursor: isDragging ? 'grabbing' : 'grab',
+            transition: isDragging ? "none" : "transform 0.24s ease-out",
+            touchAction: "none",
+            cursor: isDragging ? "grabbing" : "grab",
           }}
-        />
+        >
+          <img
+            src={images[current]}
+            alt={`Foto ${current + 1}`}
+            className="max-w-full max-h-full object-contain rounded-lg select-none pointer-events-none"
+            draggable={false}
+          />
+        </div>
 
         <button
           type="button"
