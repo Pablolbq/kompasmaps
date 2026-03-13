@@ -1,20 +1,18 @@
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import 'leaflet.markercluster';
-import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from '@/data/properties';
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-
-
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "leaflet.markercluster";
+import { Property, propertyTypeLabels, getWhatsAppLink, getPropertyImage, mediaTypeLabels } from "@/data/properties";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 
 const typeColors: Record<string, string> = {
-  casa: '#1a9a8a',
-  apartamento: '#3b6fe0',
-  terreno: '#d4872a',
-  comercial: '#8b5cf6',
-  midia: '#6b5080',
+  casa: "#1a9a8a",
+  apartamento: "#3b6fe0",
+  terreno: "#d4872a",
+  comercial: "#8b5cf6",
+  midia: "#6b5080",
 };
 
 const typeSvgIcons: Record<string, string> = {
@@ -26,11 +24,11 @@ const typeSvgIcons: Record<string, string> = {
 };
 
 function createCustomIcon(type: string) {
-  const color = typeColors[type] || '#1a9a8a';
+  const color = typeColors[type] || "#1a9a8a";
   const size = 36;
 
   return L.divIcon({
-    className: 'custom-marker',
+    className: "custom-marker",
     html: `
       <div style="
         background: ${color};
@@ -45,7 +43,7 @@ function createCustomIcon(type: string) {
         border: 3px solid white;
         transition: all 0.25s;
       ">
-        <span style="transform: rotate(45deg); display:flex; align-items:center; justify-content:center;">${typeSvgIcons[type] || ''}</span>
+        <span style="transform: rotate(45deg); display:flex; align-items:center; justify-content:center;">${typeSvgIcons[type] || ""}</span>
       </div>
     `,
     iconSize: [size, size],
@@ -55,7 +53,7 @@ function createCustomIcon(type: string) {
 }
 
 function formatPrice(price: number): string {
-  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
 interface PropertyMapProps {
@@ -88,16 +86,18 @@ function openPropertyPopup(id: string, map: L.Map) {
     markerJustClicked = true;
     marker.openPopup();
 
-    if (!marker.isPopupOpen() && attempt < 4) {
-      setTimeout(() => tryOpen(attempt + 1), 140);
+    if (!marker.isPopupOpen() && attempt < 5) {
+      setTimeout(() => tryOpen(attempt + 1), 100);
     }
   };
 
-  if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === 'function') {
+  if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === "function") {
     try {
       (globalClusterRef as any).zoomToShowLayer(marker, () => {
-        map.panTo(marker.getLatLng(), { animate: true });
-        setTimeout(() => tryOpen(), 80);
+        setTimeout(() => {
+          map.panTo(marker.getLatLng(), { animate: true });
+          setTimeout(() => tryOpen(), 100);
+        }, 50);
       });
       return;
     } catch {
@@ -105,7 +105,7 @@ function openPropertyPopup(id: string, map: L.Map) {
     }
   }
 
-  setTimeout(() => tryOpen(), 80);
+  setTimeout(() => tryOpen(), 100);
 }
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
@@ -122,9 +122,9 @@ function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
       onDeselect?.();
     };
 
-    map.on('click', handler);
+    map.on("click", handler);
     return () => {
-      map.off('click', handler);
+      map.off("click", handler);
     };
   }, [map, onDeselect]);
 
@@ -138,13 +138,13 @@ function BoundsReporter({ onBoundsChange }: { onBoundsChange?: (bounds: L.LatLng
     if (!onBoundsChange) return;
 
     const report = () => onBoundsChange(map.getBounds());
-    map.on('moveend', report);
-    map.on('zoomend', report);
+    map.on("moveend", report);
+    map.on("zoomend", report);
     report();
 
     return () => {
-      map.off('moveend', report);
-      map.off('zoomend', report);
+      map.off("moveend", report);
+      map.off("zoomend", report);
     };
   }, [map, onBoundsChange]);
 
@@ -165,10 +165,10 @@ function MarkerClusterLayer({
   const map = useMap();
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
-  const prevPropsRef = useRef<string>('');
+  const prevPropsRef = useRef<string>("");
 
   useEffect(() => {
-    const key = properties.map((p) => p.id).join(',');
+    const key = properties.map((p) => p.id).join(",");
     if (key === prevPropsRef.current && clusterRef.current) return;
     prevPropsRef.current = key;
 
@@ -186,19 +186,19 @@ function MarkerClusterLayer({
       zoomToBoundsOnClick: true,
       iconCreateFunction: (c: any) => {
         const count = c.getChildCount();
-        let size = 'small';
-        if (count >= 10) size = 'medium';
-        if (count >= 50) size = 'large';
+        let size = "small";
+        if (count >= 10) size = "medium";
+        if (count >= 50) size = "large";
 
         return L.divIcon({
           html: `<div class="cluster-icon cluster-${size}"><span>${count}</span></div>`,
-          className: 'custom-cluster',
+          className: "custom-cluster",
           iconSize: L.point(40, 40),
         });
       },
     });
 
-    cluster.on('clusterclick', (event: any) => {
+    cluster.on("clusterclick", (event: any) => {
       const spiderfiedCluster = (cluster as any)._spiderfied;
       if (spiderfiedCluster && event.layer === spiderfiedCluster && event.originalEvent) {
         L.DomEvent.stop(event.originalEvent);
@@ -210,7 +210,7 @@ function MarkerClusterLayer({
         icon: createCustomIcon(property.type),
       });
 
-      marker.on('click', (event: any) => {
+      marker.on("click", (event: any) => {
         markerJustClicked = true;
         if (event?.originalEvent) {
           L.DomEvent.stop(event.originalEvent);
@@ -225,8 +225,8 @@ function MarkerClusterLayer({
       });
 
       if (!isMobile) {
-        const isMidia = property.type === 'midia';
-        const popupContent = document.createElement('div');
+        const isMidia = property.type === "midia";
+        const popupContent = document.createElement("div");
         popupContent.innerHTML = `
           <div style="padding:12px;min-width:220px;">
             <img src="${getPropertyImage(property)}" alt="${property.title}" style="width:100%;height:112px;object-fit:cover;border-radius:8px;margin-bottom:8px;" />
@@ -237,10 +237,10 @@ function MarkerClusterLayer({
             <p style="font-size:11px;color:#666;display:flex;align-items:center;gap:4px;">📍 ${property.neighborhood}</p>
             <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:11px;color:#666;">
               <span>📐 ${property.area}m²</span>
-              ${!isMidia && property.bedrooms ? `<span>🛏️ ${property.bedrooms}</span>` : ''}
-              ${!isMidia && property.bathrooms ? `<span>🚿 ${property.bathrooms}</span>` : ''}
-              ${!isMidia && property.garageSpaces ? `<span>🚗 ${property.garageSpaces}</span>` : ''}
-              ${isMidia && property.mediaType ? `<span>${mediaTypeLabels[property.mediaType]}</span>` : ''}
+              ${!isMidia && property.bedrooms ? `<span>🛏️ ${property.bedrooms}</span>` : ""}
+              ${!isMidia && property.bathrooms ? `<span>🚿 ${property.bathrooms}</span>` : ""}
+              ${!isMidia && property.garageSpaces ? `<span>🚗 ${property.garageSpaces}</span>` : ""}
+              ${isMidia && property.mediaType ? `<span>${mediaTypeLabels[property.mediaType]}</span>` : ""}
             </div>
             <p class="popup-open-detail" style="font-weight:700;color:hsl(20,70%,48%);margin-top:8px;font-size:15px;cursor:pointer;">${formatPrice(property.price)}</p>
             <button class="popup-open-detail" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;background:hsl(20,70%,48%);color:white;border:none;cursor:pointer;margin-top:4px;">Ver detalhes</button>
@@ -251,13 +251,13 @@ function MarkerClusterLayer({
           </div>
         `;
 
-        popupContent.addEventListener('click', (domEvent) => {
+        popupContent.addEventListener("click", (domEvent) => {
           domEvent.stopPropagation();
         });
 
-        const openDetailTargets = popupContent.querySelectorAll('.popup-open-detail');
+        const openDetailTargets = popupContent.querySelectorAll(".popup-open-detail");
         openDetailTargets.forEach((el) => {
-          el.addEventListener('click', (domEvent) => {
+          el.addEventListener("click", (domEvent) => {
             domEvent.preventDefault();
             domEvent.stopPropagation();
             markerJustClicked = true;
@@ -290,12 +290,20 @@ function MarkerClusterLayer({
   return null;
 }
 
-function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPropertyId?: string | null; properties: Property[]; onFocusDone?: () => void }) {
+function FocusHandler({
+  focusPropertyId,
+  properties,
+  onFocusDone,
+}: {
+  focusPropertyId?: string | null;
+  properties: Property[];
+  onFocusDone?: () => void;
+}) {
   const map = useMap();
 
   useEffect(() => {
     if (!focusPropertyId) return;
-    const property = properties.find(p => p.id === focusPropertyId);
+    const property = properties.find((p) => p.id === focusPropertyId);
     if (!property) return;
 
     let opened = false;
@@ -306,58 +314,59 @@ function FocusHandler({ focusPropertyId, properties, onFocusDone }: { focusPrope
       onFocusDone?.();
     };
 
-    map.once('moveend', attemptOpen);
+    map.once("moveend", attemptOpen);
     map.setView([property.lat, property.lng], 16, { animate: true });
     setTimeout(attemptOpen, 320);
 
     return () => {
-      map.off('moveend', attemptOpen);
+      map.off("moveend", attemptOpen);
     };
   }, [focusPropertyId, properties, map, onFocusDone]);
 
   return null;
 }
 
-const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function PropertyMap({
-  properties,
-  selectedId: _selectedId,
-  onSelect,
-  onDeselect,
-  onExpand,
-  isMobile = false,
-  onBoundsChange,
-  focusPropertyId,
-  onFocusDone,
-}, ref) {
+const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function PropertyMap(
+  {
+    properties,
+    selectedId: _selectedId,
+    onSelect,
+    onDeselect,
+    onExpand,
+    isMobile = false,
+    onBoundsChange,
+    focusPropertyId,
+    onFocusDone,
+  },
+  ref,
+) {
   const mapRef = useRef<L.Map | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    focusProperty: (id: string) => {
-      const property = properties.find(p => p.id === id);
-      if (!property || !mapRef.current) return;
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusProperty: (id: string) => {
+        const property = properties.find((p) => p.id === id);
+        if (!property || !mapRef.current) return;
 
-      const mapInstance = mapRef.current;
-      let opened = false;
-      const attemptOpen = () => {
-        if (opened) return;
-        opened = true;
-        openPropertyPopup(id, mapInstance);
-      };
+        const mapInstance = mapRef.current;
+        let opened = false;
+        const attemptOpen = () => {
+          if (opened) return;
+          opened = true;
+          openPropertyPopup(id, mapInstance);
+        };
 
-      mapInstance.once('moveend', attemptOpen);
-      mapInstance.setView([property.lat, property.lng], 16, { animate: true });
-      setTimeout(attemptOpen, 320);
-    },
-  }), [properties]);
+        mapInstance.once("moveend", attemptOpen);
+        mapInstance.setView([property.lat, property.lng], 16, { animate: true });
+        setTimeout(attemptOpen, 320);
+      },
+    }),
+    [properties],
+  );
 
   return (
-    <MapContainer
-      center={[-25.0945, -50.1633]}
-      zoom={13}
-      className="h-full w-full"
-      zoomControl={false}
-      ref={mapRef}
-    >
+    <MapContainer center={[-25.0945, -50.1633]} zoom={13} className="h-full w-full" zoomControl={false} ref={mapRef}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
