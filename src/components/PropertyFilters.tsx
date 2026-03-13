@@ -1,7 +1,7 @@
-import { PropertyType, propertyTypeLabels, ListingType, listingTypeLabels } from '@/data/properties';
-import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone, Tag } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Slider } from '@/components/ui/slider';
+import { PropertyType, propertyTypeLabels, ListingType, listingTypeLabels, WHATSAPP_NUMBER } from "@/data/properties";
+import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone, Tag, PlusCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Slider } from "@/components/ui/slider";
 
 const SW = 1.5;
 
@@ -24,7 +24,13 @@ export interface AdvancedFilters {
 }
 
 export const emptyAdvancedFilters: AdvancedFilters = {
-  priceMin: null, priceMax: null, bedroomsMin: null, bathroomsMin: null, garageMin: null, areaMin: null, areaMax: null,
+  priceMin: null,
+  priceMax: null,
+  bedroomsMin: null,
+  bathroomsMin: null,
+  garageMin: null,
+  areaMin: null,
+  areaMax: null,
 };
 
 interface PropertyFiltersProps {
@@ -37,7 +43,15 @@ interface PropertyFiltersProps {
   onAdvancedFiltersChange: (filters: AdvancedFilters) => void;
 }
 
-function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
+function SliderFilter({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  formatValue,
+}: {
   label: string;
   value: number | null;
   onChange: (v: number | null) => void;
@@ -52,9 +66,7 @@ function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
-        <span className="text-[11px] font-semibold text-foreground">
-          {value !== null ? fmt(value) : 'Qualquer'}
-        </span>
+        <span className="text-[11px] font-semibold text-foreground">{value !== null ? fmt(value) : "Qualquer"}</span>
       </div>
       <Slider
         min={min}
@@ -68,7 +80,17 @@ function SliderFilter({ label, value, onChange, min, max, step, formatValue }: {
   );
 }
 
-function RangeSliderFilter({ label, valueMin, valueMax, onChangeMin, onChangeMax, min, max, step, formatValue }: {
+function RangeSliderFilter({
+  label,
+  valueMin,
+  valueMax,
+  onChangeMin,
+  onChangeMax,
+  min,
+  max,
+  step,
+  formatValue,
+}: {
   label: string;
   valueMin: number | null;
   valueMax: number | null;
@@ -87,7 +109,7 @@ function RangeSliderFilter({ label, valueMin, valueMax, onChangeMin, onChangeMax
       <div className="flex items-center justify-between">
         <label className="text-[11px] font-medium text-muted-foreground">{label}</label>
         <span className="text-[11px] font-semibold text-foreground">
-          {fmt(lo)} — {hi >= max ? fmt(max) + '+' : fmt(hi)}
+          {fmt(lo)} — {hi >= max ? fmt(max) + "+" : fmt(hi)}
         </span>
       </div>
       <Slider
@@ -111,16 +133,24 @@ const formatBRL = (v: number) => {
   return `R$ ${v}`;
 };
 
-export default function PropertyFilters({ activeTypes, onToggleType, activeListingTypes, onToggleListingType, total, advancedFilters, onAdvancedFiltersChange }: PropertyFiltersProps) {
-  const types: PropertyType[] = ['casa', 'apartamento', 'terreno', 'comercial'];
-  const listingTypes: ListingType[] = ['venda', 'aluguel'];
+export default function PropertyFilters({
+  activeTypes,
+  onToggleType,
+  activeListingTypes,
+  onToggleListingType,
+  total,
+  advancedFilters,
+  onAdvancedFiltersChange,
+}: PropertyFiltersProps) {
+  const types: PropertyType[] = ["casa", "apartamento", "terreno", "comercial"];
+  const listingTypes: ListingType[] = ["venda", "aluguel"];
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showHint, setShowHint] = useState(true);
 
   const onlyMidia = false;
 
   useEffect(() => {
-    if (activeTypes.length !== 1 || activeTypes[0] !== 'casa') setShowHint(false);
+    if (activeTypes.length !== 1 || activeTypes[0] !== "casa") setShowHint(false);
   }, [activeTypes]);
 
   const hasAdvanced = Object.values(advancedFilters).some((v) => v !== null);
@@ -128,14 +158,12 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
   return (
     <div className="space-y-3">
       {showHint && (
-        <p className="text-[11px] text-muted-foreground/70 italic">
-          Selecione um tipo para filtrar os imóveis
-        </p>
+        <p className="text-[11px] text-muted-foreground/70 italic">Selecione um tipo para filtrar os imóveis</p>
       )}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-lg text-foreground tracking-tight">Filtros</h2>
         <span className="text-xs text-muted-foreground font-medium">
-          {total} {total === 1 ? 'imóvel' : 'imóveis'}
+          {total} {total === 1 ? "imóvel" : "imóveis"}
         </span>
       </div>
 
@@ -149,8 +177,8 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
               onClick={() => onToggleListingType(lt)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'bg-badge-midia text-white shadow-md'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  ? "bg-badge-midia text-white shadow-md"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
             >
               <Tag size={14} strokeWidth={SW} />
@@ -172,8 +200,8 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
               onClick={() => onToggleType(type)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               }`}
             >
               {typeIcons[type]}
@@ -183,18 +211,21 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
         })}
       </div>
 
-      {/* Advanced toggle */}
+      {/* Advanced toggle & Sell Button */}
       {!onlyMidia && (
-        <>
+        <div className="flex items-center justify-between">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
             <SlidersHorizontal size={14} strokeWidth={SW} />
             Busca avançada
             {hasAdvanced && (
               <span
-                onClick={(e) => { e.stopPropagation(); onAdvancedFiltersChange(emptyAdvancedFilters); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdvancedFiltersChange(emptyAdvancedFilters);
+                }}
                 className="ml-1 hover:text-destructive"
               >
                 <X size={12} strokeWidth={SW} />
@@ -202,57 +233,67 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
             )}
           </button>
 
-          {showAdvanced && (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-1 animate-accordion-down">
-              <RangeSliderFilter
-                label="Preço"
-                valueMin={advancedFilters.priceMin}
-                valueMax={advancedFilters.priceMax}
-                onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })}
-                onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })}
-                min={0}
-                max={5000000}
-                step={50000}
-                formatValue={formatBRL}
-              />
-              <SliderFilter
-                label="Quartos mín"
-                value={advancedFilters.bedroomsMin}
-                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })}
-                min={0}
-                max={6}
-                step={1}
-              />
-              <SliderFilter
-                label="Banheiros mín"
-                value={advancedFilters.bathroomsMin}
-                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })}
-                min={0}
-                max={5}
-                step={1}
-              />
-              <SliderFilter
-                label="Vagas mín"
-                value={advancedFilters.garageMin}
-                onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })}
-                min={0}
-                max={5}
-                step={1}
-              />
-              <RangeSliderFilter
-                label="Área (m²)"
-                valueMin={advancedFilters.areaMin}
-                valueMax={advancedFilters.areaMax}
-                onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
-                onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMax: v })}
-                min={0}
-                max={1000}
-                step={10}
-                formatValue={(v) => `${v}m²`}
-              />
-            </div>
-          )}
-        </>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá! Gostaria de anunciar meu imóvel no Kompas.")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all"
+          >
+            <PlusCircle size={13} strokeWidth={2} />
+            Anunciar imóvel
+          </a>
+        </div>
+      )}
+
+      {showAdvanced && (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-1 animate-accordion-down">
+          <RangeSliderFilter
+            label="Preço"
+            valueMin={advancedFilters.priceMin}
+            valueMax={advancedFilters.priceMax}
+            onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMin: v })}
+            onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, priceMax: v })}
+            min={0}
+            max={5000000}
+            step={50000}
+            formatValue={formatBRL}
+          />
+          <SliderFilter
+            label="Quartos mín"
+            value={advancedFilters.bedroomsMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bedroomsMin: v })}
+            min={0}
+            max={6}
+            step={1}
+          />
+          <SliderFilter
+            label="Banheiros mín"
+            value={advancedFilters.bathroomsMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, bathroomsMin: v })}
+            min={0}
+            max={5}
+            step={1}
+          />
+          <SliderFilter
+            label="Vagas mín"
+            value={advancedFilters.garageMin}
+            onChange={(v) => onAdvancedFiltersChange({ ...advancedFilters, garageMin: v })}
+            min={0}
+            max={5}
+            step={1}
+          />
+          <RangeSliderFilter
+            label="Área (m²)"
+            valueMin={advancedFilters.areaMin}
+            valueMax={advancedFilters.areaMax}
+            onChangeMin={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMin: v })}
+            onChangeMax={(v) => onAdvancedFiltersChange({ ...advancedFilters, areaMax: v })}
+            min={0}
+            max={1000}
+            step={10}
+            formatValue={(v) => `${v}m²`}
+          />
+        </div>
       )}
     </div>
   );
