@@ -1,5 +1,5 @@
-import { PropertyType, propertyTypeLabels, ListingType, listingTypeLabels, WHATSAPP_NUMBER } from '@/data/properties';
-import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone, Tag, PlusCircle } from 'lucide-react';
+import { PropertyType, propertyTypeLabels, ListingType, listingTypeLabels } from '@/data/properties';
+import { Home, Building2, LandPlot, Store, SlidersHorizontal, X, Megaphone, Tag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 
@@ -183,9 +183,9 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
         })}
       </div>
 
-      {/* Advanced toggle & Sell Button */}
+      {/* Advanced toggle */}
       {!onlyMidia && (
-        <div className="flex items-center justify-between">
+        <>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasAdvanced ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
@@ -201,17 +201,6 @@ export default function PropertyFilters({ activeTypes, onToggleType, activeListi
               </span>
             )}
           </button>
-
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de anunciar meu imóvel no Kompas.')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all"
-          >
-            <PlusCircle size={13} strokeWidth={2} />
-            Anunciar imóvel
-          </a>
-        </div>
 
           {showAdvanced && (
             <div className="grid grid-cols-2 gap-x-4 gap-y-5 pt-1 animate-accordion-down">
