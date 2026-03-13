@@ -84,20 +84,16 @@ function openPropertyPopup(id: string, map: L.Map) {
   const marker = globalMarkersRef.get(id);
   if (!marker || !marker.getPopup()) return;
 
-  const tryOpen = (attempt = 0) => {
+  const openNow = () => {
     markerJustClicked = true;
     marker.openPopup();
-
-    if (!marker.isPopupOpen() && attempt < 4) {
-      setTimeout(() => tryOpen(attempt + 1), 140);
-    }
   };
 
   if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === 'function') {
     try {
       (globalClusterRef as any).zoomToShowLayer(marker, () => {
         map.panTo(marker.getLatLng(), { animate: true });
-        setTimeout(() => tryOpen(), 80);
+        setTimeout(openNow, 80);
       });
       return;
     } catch {
@@ -105,7 +101,7 @@ function openPropertyPopup(id: string, map: L.Map) {
     }
   }
 
-  setTimeout(() => tryOpen(), 80);
+  setTimeout(openNow, 120);
 }
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {

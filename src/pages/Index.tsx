@@ -8,8 +8,9 @@ import PropertyCard from '@/components/PropertyCard';
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from '@/components/PropertyFilters';
 import PropertyDetailDialog from '@/components/PropertyDetailDialog';
 import PropertyDetailMobile from '@/components/PropertyDetailMobile';
-import { Search, MapPin, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, X, Loader2, MapPin, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import logoIcon from '@/assets/logo-icon.png';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -23,7 +24,6 @@ const Index = () => {
   const [sheetMode, setSheetMode] = useState<'half' | 'full' | 'mini'>('half');
   const [firstInteraction, setFirstInteraction] = useState(true);
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
-  const [mobileFiltersCollapsed, setMobileFiltersCollapsed] = useState(false);
   // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -32,6 +32,7 @@ const Index = () => {
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const mapRef = useRef<PropertyMapHandle>(null);
+  const [focusPropertyId, setFocusPropertyId] = useState<string | null>(null);
 
   // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
@@ -107,11 +108,18 @@ const Index = () => {
 
   const focusMapProperty = useCallback((id: string) => {
     setSelectedId(id);
-    requestAnimationFrame(() => {
-      mapRef.current?.focusProperty(id);
-    });
+
+    if (mapRef.current) {
+      mapRef.current.focusProperty(id);
+      setTimeout(() => mapRef.current?.focusProperty(id), 320);
+      return;
+    }
+
+    setFocusPropertyId(id);
+    setTimeout(() => setFocusPropertyId(id), 320);
   }, []);
 
+  const selectedProperty = selectedId ? filteredProperties.find(p => p.id === selectedId) : null;
   const detailProp = detailProperty ? filteredProperties.find(p => p.id === detailProperty) : null;
 
   const contactLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Gostaria de falar com vocês.')}`;
@@ -148,26 +156,15 @@ const Index = () => {
         </header>
 
         <div className="px-3 py-2 border-b border-border bg-card flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setMobileFiltersCollapsed((prev) => !prev)}
-            className="w-full flex items-center justify-between py-1 text-sm font-semibold text-foreground"
-          >
-            <span>Filtros</span>
-            {mobileFiltersCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          </button>
-
-          {!mobileFiltersCollapsed && (
-            <PropertyFilters
-              activeTypes={activeTypes}
-              onToggleType={toggleType}
-              activeListingTypes={activeListingTypes}
-              onToggleListingType={toggleListingType}
-              total={visibleProperties.length}
-              advancedFilters={advancedFilters}
-              onAdvancedFiltersChange={setAdvancedFilters}
-            />
-          )}
+          <PropertyFilters
+            activeTypes={activeTypes}
+            onToggleType={toggleType}
+            activeListingTypes={activeListingTypes}
+            onToggleListingType={toggleListingType}
+            total={visibleProperties.length}
+            advancedFilters={advancedFilters}
+            onAdvancedFiltersChange={setAdvancedFilters}
+          />
         </div>
 
         <div className="flex-1 relative overflow-hidden" ref={containerRef}>
@@ -229,24 +226,41 @@ const Index = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto px-3 pb-3">
-              <div className="space-y-3">
-                {visibleProperties.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
-                    <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
-                  </div>
-                ) : (
-                  visibleProperties.map((property) => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      isSelected={selectedId === property.id}
-                      onClick={() => handleSelect(property.id)}
-                      onExpand={() => setDetailProperty(property.id)}
-                    />
-                  ))
-                )}
-              </div>
+              {selectedProperty ? (
+                <div>
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="mb-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X size={14} /> Voltar à lista
+                  </button>
+                  <PropertyCard
+                    property={selectedProperty}
+                    isSelected={true}
+                    onClick={() => setDetailProperty(selectedProperty.id)}
+                    onExpand={() => setDetailProperty(selectedProperty.id)}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {visibleProperties.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MapPin size={28} strokeWidth={1.5} className="mx-auto mb-2 opacity-40" />
+                      <p className="text-xs font-medium">Nenhum imóvel encontrado</p>
+                    </div>
+                  ) : (
+                    visibleProperties.map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        isSelected={selectedId === property.id}
+                        onClick={() => handleSelect(property.id)}
+                        onExpand={() => setDetailProperty(property.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

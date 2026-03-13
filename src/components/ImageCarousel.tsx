@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
-import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface ImageCarouselProps {
@@ -171,156 +170,126 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
   const safeStartIndex = Math.max(0, Math.min(startIndex, Math.max(total - 1, 0)));
   const [current, setCurrent] = useState(safeStartIndex);
   const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const isPointerDown = useRef(false);
   const startX = useRef(0);
-  const pointerId = useRef<number | null>(null);
-
-  const goTo = useCallback((index: number) => {
-    setCurrent(Math.max(0, Math.min(total - 1, index)));
-  }, [total]);
 
   useEffect(() => {
     setCurrent(safeStartIndex);
     setDragOffset(0);
-    pointerId.current = null;
+    isPointerDown.current = false;
   }, [safeStartIndex]);
 
-  useEffect(() => {
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
+  const goTo = useCallback((i: number) => setCurrent(Math.max(0, Math.min(total - 1, i))), [total]);
 
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+  const finishDrag = useCallback(() => {
+    if (!isPointerDown.current) return;
+    isPointerDown.current = false;
 
-    return () => {
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-    };
-  }, []);
+    if (Math.abs(dragOffset) > 60) {
+      if (dragOffset < 0) goTo(current + 1);
+      else goTo(current - 1);
+    }
+
+    setDragOffset(0);
+  }, [current, dragOffset, goTo]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
       if (e.key === 'ArrowRight') goTo(current + 1);
       if (e.key === 'ArrowLeft') goTo(current - 1);
     };
 
     window.addEventListener('keydown', handler, true);
     return () => window.removeEventListener('keydown', handler, true);
-  }, [current, goTo, onClose]);
+  }, [onClose, current, goTo]);
 
-  if (total === 0 || typeof document === 'undefined') return null;
+  if (total === 0) return null;
 
-  const handleDragEnd = (clientX: number) => {
-    if (pointerId.current === null) return;
-    pointerId.current = null;
-
-    const delta = clientX - startX.current;
-    if (Math.abs(delta) > 60) {
-      if (delta < 0) goTo(current + 1);
-      else goTo(current - 1);
-    }
-
-    setDragOffset(0);
-    setIsDragging(false);
-  };
-
-  return createPortal(
+  return (
     <div
       ref={ref}
-      className="fixed inset-0 z-[1200] bg-foreground/20 backdrop-blur-[1px] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4 md:p-8"
       role="dialog"
       aria-modal="true"
-      onPointerDown={(e) => {
+      onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      onWheel={(e) => e.preventDefault()}
-      onTouchMove={(e) => e.preventDefault()}
     >
-      <div
-        className="relative w-full max-w-[45rem] h-[min(90vh,800px)] flex items-center justify-center"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <img
-          src={images[current]}
-          alt={`Foto ${current + 1}`}
-          className="w-full h-full object-contain rounded-xl"
-          draggable={false}
-          onPointerDown={(e) => {
-            if ((e.target as HTMLElement).closest('button')) return;
-            pointerId.current = e.pointerId;
-            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-            startX.current = e.clientX;
-            setDragOffset(0);
-            setIsDragging(true);
-          }}
-          onPointerMove={(e) => {
-            if (pointerId.current !== e.pointerId) return;
-            setDragOffset(e.clientX - startX.current);
-          }}
-          onPointerUp={(e) => {
-            if (pointerId.current === e.pointerId) {
-              (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-            }
-            handleDragEnd(e.clientX);
-          }}
-          onPointerCancel={() => {
-            pointerId.current = null;
-            setDragOffset(0);
-            setIsDragging(false);
-          }}
-          style={{
-            transform: `translateX(${dragOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.24s ease-out',
-            touchAction: 'none',
-            cursor: isDragging ? 'grabbing' : 'grab',
-          }}
-        />
-
+      <div className="relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
         <button
-          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
-          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
-          aria-label="Fechar foto"
+          className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center z-20"
+          aria-label="Fechar fotos"
         >
           <X size={20} />
         </button>
 
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-background text-sm font-medium z-20 pointer-events-none">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium z-20">
           {current + 1} / {total}
         </div>
 
-        {total > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                goTo(current - 1);
-              }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
-              aria-label="Foto anterior"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                goTo(current + 1);
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
-              aria-label="Próxima foto"
-            >
-              <ChevronRight size={22} />
-            </button>
-          </>
-        )}
+        <div
+          className="relative flex items-center justify-center select-none"
+          onPointerDown={(e) => {
+            if ((e.target as HTMLElement).closest('button')) return;
+            isPointerDown.current = true;
+            startX.current = e.clientX;
+            setDragOffset(0);
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            if (!isPointerDown.current) return;
+            setDragOffset(e.clientX - startX.current);
+          }}
+          onPointerUp={finishDrag}
+          onPointerLeave={finishDrag}
+          onPointerCancel={finishDrag}
+          style={{ touchAction: 'pan-y' }}
+        >
+          <img
+            src={images[current]}
+            alt={`Foto ${current + 1}`}
+            className="max-w-[72vw] max-h-[72vh] object-contain rounded-lg"
+            style={{
+              transform: `translateX(${dragOffset}px)`,
+              transition: dragOffset !== 0 ? 'none' : 'transform 0.3s ease-out',
+            }}
+            draggable={false}
+          />
+
+          {total > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goTo(current - 1);
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center z-20"
+                aria-label="Foto anterior"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goTo(current + 1);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/20 hover:bg-white/20 text-white flex items-center justify-center z-20"
+                aria-label="Próxima foto"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 });
