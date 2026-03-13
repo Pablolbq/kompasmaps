@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface ImageCarouselProps {
@@ -170,38 +171,36 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
   const safeStartIndex = Math.max(0, Math.min(startIndex, Math.max(total - 1, 0)));
   const [current, setCurrent] = useState(safeStartIndex);
   const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
-  const isPointerDown = useRef(false);
-
-  useEffect(() => {
-    setCurrent(safeStartIndex);
-    setDragOffset(0);
-    isPointerDown.current = false;
-  }, [safeStartIndex]);
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const previousTouchAction = document.body.style.touchAction;
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.body.style.touchAction = previousTouchAction;
-    };
-  }, []);
+  const pointerId = useRef<number | null>(null);
 
   const goTo = useCallback((index: number) => {
     setCurrent(Math.max(0, Math.min(total - 1, index)));
   }, [total]);
 
   useEffect(() => {
+    setCurrent(safeStartIndex);
+    setDragOffset(0);
+    pointerId.current = null;
+  }, [safeStartIndex]);
+
+  useEffect(() => {
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') goTo(current + 1);
       if (e.key === 'ArrowLeft') goTo(current - 1);
     };
@@ -210,63 +209,71 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
     return () => window.removeEventListener('keydown', handler, true);
   }, [current, goTo, onClose]);
 
-  if (total === 0) return null;
+  if (total === 0 || typeof document === 'undefined') return null;
 
-  const handlePointerUp = (clientX: number) => {
-    if (!isPointerDown.current) return;
-    isPointerDown.current = false;
+  const handleDragEnd = (clientX: number) => {
+    if (pointerId.current === null) return;
+    pointerId.current = null;
 
     const delta = clientX - startX.current;
-    if (Math.abs(delta) > 55) {
+    if (Math.abs(delta) > 60) {
       if (delta < 0) goTo(current + 1);
       else goTo(current - 1);
     }
 
     setDragOffset(0);
+    setIsDragging(false);
   };
 
-  return (
+  return createPortal(
     <div
       ref={ref}
-      className="fixed inset-0 z-[9999] bg-black/20 backdrop-blur-[1px] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[1200] bg-foreground/20 backdrop-blur-[1px] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      onClick={() => onClose()}
-      onWheelCapture={(e) => e.preventDefault()}
-      onTouchMoveCapture={(e) => e.preventDefault()}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onWheel={(e) => e.preventDefault()}
+      onTouchMove={(e) => e.preventDefault()}
     >
-      <div className="relative w-full max-w-[45rem] h-[min(85vh,800px)] flex items-center justify-center">
+      <div
+        className="relative w-full max-w-[45rem] h-[min(90vh,800px)] flex items-center justify-center"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <img
           src={images[current]}
           alt={`Foto ${current + 1}`}
           className="w-full h-full object-contain rounded-xl"
           draggable={false}
-          onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => {
             if ((e.target as HTMLElement).closest('button')) return;
-            isPointerDown.current = true;
+            pointerId.current = e.pointerId;
+            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
             startX.current = e.clientX;
             setDragOffset(0);
+            setIsDragging(true);
           }}
           onPointerMove={(e) => {
-            if (!isPointerDown.current) return;
+            if (pointerId.current !== e.pointerId) return;
             setDragOffset(e.clientX - startX.current);
           }}
           onPointerUp={(e) => {
-            e.stopPropagation();
-            handlePointerUp(e.clientX);
-          }}
-          onPointerLeave={(e) => {
-            handlePointerUp(e.clientX);
+            if (pointerId.current === e.pointerId) {
+              (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+            }
+            handleDragEnd(e.clientX);
           }}
           onPointerCancel={() => {
-            isPointerDown.current = false;
+            pointerId.current = null;
             setDragOffset(0);
+            setIsDragging(false);
           }}
           style={{
             transform: `translateX(${dragOffset}px)`,
-            transition: dragOffset !== 0 ? 'none' : 'transform 0.24s ease-out',
-            touchAction: 'pan-y',
+            transition: isDragging ? 'none' : 'transform 0.24s ease-out',
+            touchAction: 'none',
+            cursor: isDragging ? 'grabbing' : 'grab',
           }}
         />
 
@@ -276,13 +283,13 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
             e.stopPropagation();
             onClose();
           }}
-          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center z-20"
+          className="absolute top-3 right-3 w-10 h-10 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
           aria-label="Fechar foto"
         >
           <X size={20} />
         </button>
 
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-white text-sm font-medium z-20 pointer-events-none">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-background text-sm font-medium z-20 pointer-events-none">
           {current + 1} / {total}
         </div>
 
@@ -294,7 +301,7 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
                 e.stopPropagation();
                 goTo(current - 1);
               }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center z-20"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
               aria-label="Foto anterior"
             >
               <ChevronLeft size={22} />
@@ -305,7 +312,7 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
                 e.stopPropagation();
                 goTo(current + 1);
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center z-20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-foreground/55 hover:bg-foreground/70 text-background flex items-center justify-center z-20"
               aria-label="Próxima foto"
             >
               <ChevronRight size={22} />
@@ -313,6 +320,7 @@ export const ImageLightbox = forwardRef<HTMLDivElement, ImageLightboxProps>(func
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 });
