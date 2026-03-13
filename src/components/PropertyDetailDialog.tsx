@@ -35,28 +35,6 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
     }
   }, [open]);
 
-  // CORREÇÃO CRÍTICA: Quando o lightbox abre, desativamos o pointer-events de todos os overlays do Radix
-  useEffect(() => {
-    if (lightboxIndex !== null) {
-      // Desativa cliques no overlay do Dialog para que o Lightbox receba os cliques
-      const overlays = document.querySelectorAll('[data-state="open"]');
-      overlays.forEach((el) => {
-        if (el.classList.contains("fixed")) {
-          (el as HTMLElement).style.pointerEvents = "none";
-        }
-      });
-      // Garante que o body não tenha pointer-events: none (o Radix as vezes coloca isso)
-      document.body.style.pointerEvents = "auto";
-    } else {
-      const overlays = document.querySelectorAll('[data-state="open"]');
-      overlays.forEach((el) => {
-        if (el.classList.contains("fixed")) {
-          (el as HTMLElement).style.pointerEvents = "auto";
-        }
-      });
-    }
-  }, [lightboxIndex]);
-
   if (!property) return null;
   const isMidia = property.type === "midia";
 
@@ -65,7 +43,6 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
       <Dialog
         open={open}
         onOpenChange={(o) => {
-          // Só fecha o dialog se o lightbox estiver fechado
           if (!o && lightboxIndex === null) {
             onClose();
           }
@@ -156,7 +133,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
         </DialogContent>
       </Dialog>
 
-      {/* Lightbox renderizado fora do Dialog para evitar captura de eventos do Radix UI */}
+      {/* Fullscreen renderizado via Portal para evitar bloqueio de eventos do Dialog */}
       {lightboxIndex !== null &&
         ReactDOM.createPortal(
           <ImageLightbox images={property.images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />,

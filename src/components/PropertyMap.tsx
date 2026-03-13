@@ -84,16 +84,22 @@ function openPropertyPopup(id: string, map: L.Map) {
 
   const openNow = () => {
     markerJustClicked = true;
-    // Garante que o mapa tenha foco
-    map.getContainer().focus();
+    // CRÍTICO: Força o container do mapa a receber foco para evitar que o Radix UI "mate" o popup
+    try {
+      map.getContainer().focus();
+    } catch (e) {
+      // ignore
+    }
     marker.openPopup();
   };
 
+  // Se o marker está em um cluster, faz zoom para mostrar
   if (globalClusterRef && typeof (globalClusterRef as any).zoomToShowLayer === "function") {
     try {
       (globalClusterRef as any).zoomToShowLayer(marker, () => {
         map.panTo(marker.getLatLng(), { animate: true });
-        setTimeout(openNow, 200);
+        // Aguarda a animação de zoom terminar antes de abrir o popup
+        setTimeout(openNow, 300);
       });
       return;
     } catch {
@@ -101,7 +107,8 @@ function openPropertyPopup(id: string, map: L.Map) {
     }
   }
 
-  setTimeout(openNow, 200);
+  // Fallback: abre após delay
+  setTimeout(openNow, 300);
 }
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
@@ -180,6 +187,8 @@ function MarkerClusterLayer({
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
+      // CORREÇÃO: Não fechar popups automaticamente ao clicar em markers dentro de um cluster
+      disableClusteringAtZoom: 18,
       iconCreateFunction: (c: any) => {
         const count = c.getChildCount();
         let size = "small";
@@ -215,7 +224,15 @@ function MarkerClusterLayer({
         onSelect(property.id);
 
         if (!isMobile && marker.getPopup()) {
-          setTimeout(() => marker.openPopup(), 0);
+          // Abre o popup imediatamente após notificar o pai
+          setTimeout(() => {
+            try {
+              map.getContainer().focus();
+            } catch (e) {
+              // ignore
+            }
+            marker.openPopup();
+          }, 0);
         }
       });
 
@@ -311,7 +328,8 @@ function FocusHandler({
 
     map.once("moveend", attemptOpen);
     map.setView([property.lat, property.lng], 16, { animate: true });
-    setTimeout(attemptOpen, 400);
+    // Fallback: se moveend não disparar, abre mesmo assim
+    setTimeout(attemptOpen, 600);
 
     return () => {
       map.off("moveend", attemptOpen);
@@ -354,7 +372,8 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
 
         mapInstance.once("moveend", attemptOpen);
         mapInstance.setView([property.lat, property.lng], 16, { animate: true });
-        setTimeout(attemptOpen, 400);
+        // Fallback: se moveend não disparar, abre mesmo assim
+        setTimeout(attemptOpen, 600);
       },
     }),
     [properties],
