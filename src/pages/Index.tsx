@@ -342,6 +342,8 @@ const Index = () => {
             onDeselect={() => setSelectedId(null)}
             onExpand={(id) => setDetailProperty(id)}
             onBoundsChange={handleBoundsChange}
+            focusPropertyId={focusPropertyId}
+            onFocusDone={() => setFocusPropertyId(null)}
           />
         </main>
       </div>
