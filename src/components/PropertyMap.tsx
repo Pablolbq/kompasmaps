@@ -84,6 +84,12 @@ function openPropertyPopup(id: string, map: L.Map) {
 
   const openNow = () => {
     markerJustClicked = true;
+    // Força o mapa a receber o foco
+    try {
+      map.getContainer().focus();
+    } catch (e) {
+      // ignore
+    }
     marker.openPopup();
   };
 
@@ -91,7 +97,8 @@ function openPropertyPopup(id: string, map: L.Map) {
     try {
       (globalClusterRef as any).zoomToShowLayer(marker, () => {
         map.panTo(marker.getLatLng(), { animate: true });
-        setTimeout(openNow, 100);
+        // Aguarda a animação de zoom terminar
+        setTimeout(openNow, 250);
       });
       return;
     } catch {
@@ -99,7 +106,8 @@ function openPropertyPopup(id: string, map: L.Map) {
     }
   }
 
-  setTimeout(openNow, 150);
+  // Fallback: abre após delay
+  setTimeout(openNow, 250);
 }
 
 function MapClickHandler({ onDeselect }: { onDeselect?: () => void }) {
@@ -215,7 +223,14 @@ function MarkerClusterLayer({
 
         if (!isMobile && marker.getPopup()) {
           // Abre o popup após notificar o pai
-          setTimeout(() => marker.openPopup(), 0);
+          setTimeout(() => {
+            try {
+              map.getContainer().focus();
+            } catch (e) {
+              // ignore
+            }
+            marker.openPopup();
+          }, 0);
         }
       });
 
@@ -309,13 +324,19 @@ function FocusHandler({
       onFocusDone?.();
     };
 
-    map.once("moveend", attemptOpen);
+    // Tenta abrir quando o mapa termina de se mover
+    const moveEndHandler = () => attemptOpen();
+    map.once("moveend", moveEndHandler);
+
+    // Inicia a animação de zoom
     map.setView([property.lat, property.lng], 16, { animate: true });
-    // Fallback: se moveend não disparar (já está na posição certa), abre após delay
-    setTimeout(attemptOpen, 400);
+
+    // Fallback: se moveend não disparar, abre mesmo assim após delay
+    const fallbackTimeout = setTimeout(attemptOpen, 600);
 
     return () => {
-      map.off("moveend", attemptOpen);
+      map.off("moveend", moveEndHandler);
+      clearTimeout(fallbackTimeout);
     };
   }, [focusPropertyId, properties, map, onFocusDone]);
 
@@ -353,10 +374,17 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
           openPropertyPopup(id, mapInstance);
         };
 
-        mapInstance.once("moveend", attemptOpen);
+        const moveEndHandler = () => attemptOpen();
+        mapInstance.once("moveend", moveEndHandler);
         mapInstance.setView([property.lat, property.lng], 16, { animate: true });
-        // Fallback: se moveend não disparar (já está na posição certa), abre após delay
-        setTimeout(attemptOpen, 400);
+
+        // Fallback: se moveend não disparar, abre mesmo assim após delay
+        const fallbackTimeout = setTimeout(attemptOpen, 600);
+
+        return () => {
+          mapInstance.off("moveend", moveEndHandler);
+          clearTimeout(fallbackTimeout);
+        };
       },
     }),
     [properties],

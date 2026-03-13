@@ -351,7 +351,7 @@ const Index = () => {
                   property={property}
                   isSelected={selectedId === property.id}
                   onClick={() => {
-                    // Clique no card: apenas seleciona e foca o pin no mapa (sem abrir dialog)
+                    // Clique no card: apenas foca o pin no mapa (sem abrir dialog)
                     focusMapProperty(property.id);
                   }}
                   onExpand={() => {
@@ -387,18 +387,18 @@ const Index = () => {
           const closingId = detailProperty;
           setDetailProperty(null);
 
-          // Aguarda a animação de saída do Dialog (~200ms) antes de focar o pin no mapa
+          // Aguarda a animação de saída do Dialog (~200ms) + tempo extra para garantir que o Radix UI libere o foco
           if (closingId) {
             setTimeout(() => {
               focusMapProperty(closingId);
-            }, 350);
+            }, 500);
           }
         }}
         onViewOnMap={(id) => {
           setDetailProperty(null);
           setTimeout(() => {
             focusMapProperty(id);
-          }, 350);
+          }, 500);
         }}
       />
     </div>

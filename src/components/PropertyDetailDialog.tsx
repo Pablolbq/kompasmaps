@@ -35,6 +35,21 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
     }
   }, [open]);
 
+  // Quando lightbox abre, desabilita pointer-events do overlay do Dialog
+  useEffect(() => {
+    if (lightboxIndex !== null) {
+      const overlay = document.querySelector('[role="presentation"]');
+      if (overlay) {
+        (overlay as HTMLElement).style.pointerEvents = "none";
+      }
+    } else {
+      const overlay = document.querySelector('[role="presentation"]');
+      if (overlay) {
+        (overlay as HTMLElement).style.pointerEvents = "auto";
+      }
+    }
+  }, [lightboxIndex]);
+
   if (!property) return null;
   const isMidia = property.type === "midia";
 
@@ -133,8 +148,7 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
         </DialogContent>
       </Dialog>
 
-      {/* Renderiza o lightbox via portal diretamente no body, fora do contexto do Dialog do Radix UI,
-          garantindo que z-index e pointer-events funcionem corretamente */}
+      {/* Renderiza o lightbox via portal com z-index máximo, completamente fora do Dialog */}
       {lightboxIndex !== null &&
         ReactDOM.createPortal(
           <ImageLightbox images={property.images} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />,
