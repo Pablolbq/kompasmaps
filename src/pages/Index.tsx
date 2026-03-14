@@ -1,20 +1,26 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from "react";
 import L from "leaflet";
+import { useNavigate } from "react-router-dom";
 import logoImg from "@/assets/logo.png";
 import { PropertyType, ListingType, WHATSAPP_NUMBER } from "@/data/properties";
 import { useProperties } from "@/hooks/useProperties";
+import { useAuth } from "@/hooks/useAuth";
+import { useFavorites } from "@/hooks/useFavorites";
 import PropertyMap, { PropertyMapHandle } from "@/components/PropertyMap";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from "@/components/PropertyFilters";
 import PropertyDetailDialog from "@/components/PropertyDetailDialog";
 import PropertyDetailMobile from "@/components/PropertyDetailMobile";
-import { Search, X, Loader2, MapPin, MessageCircle } from "lucide-react";
+import { Search, X, Loader2, MapPin, MessageCircle, LogIn, LogOut, Heart } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoIcon from "@/assets/logo-icon.png";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const { data: properties = [], isLoading } = useProperties();
+  const { session, signOut } = useAuth();
+  const { favoriteIds, toggleFavorite } = useFavorites(session?.user?.id);
   const [activeTypes, setActiveTypes] = useState<PropertyType[]>(["casa"]);
   const [activeListingTypes, setActiveListingTypes] = useState<ListingType[]>(["venda", "aluguel"]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -24,7 +30,6 @@ const Index = () => {
   const [sheetMode, setSheetMode] = useState<"half" | "full" | "mini">("half");
   const [firstInteraction, setFirstInteraction] = useState(true);
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
-  // Dragging state
   const [dragTop, setDragTop] = useState<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const sheetStartTop = useRef<number | null>(null);
@@ -34,7 +39,6 @@ const Index = () => {
   const mapRef = useRef<PropertyMapHandle>(null);
   const [focusPropertyId, setFocusPropertyId] = useState<string | null>(null);
 
-  // Filter properties by type, listing type, search, and advanced filters
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
       if (!activeTypes.includes(p.type)) return false;
@@ -49,7 +53,6 @@ const Index = () => {
       )
         return false;
 
-      // Advanced filters don't apply to mídia
       if (p.type === "midia") return true;
 
       const af = advancedFilters;
@@ -64,7 +67,6 @@ const Index = () => {
     });
   }, [properties, activeTypes, activeListingTypes, search, advancedFilters]);
 
-  // Properties visible on map (for sidebar list)
   const visibleProperties = useMemo(() => {
     if (!mapBounds) return filteredProperties;
     return filteredProperties.filter((p) => mapBounds.contains([p.lat, p.lng]));
@@ -91,7 +93,7 @@ const Index = () => {
   const toggleListingType = useCallback((lt: ListingType) => {
     setActiveListingTypes((prev) => {
       if (prev.includes(lt)) {
-        if (prev.length === 1) return prev; // don't deselect all
+        if (prev.length === 1) return prev;
         return prev.filter((t) => t !== lt);
       }
       return [...prev, lt];
@@ -118,15 +120,11 @@ const Index = () => {
 
   const focusMapProperty = useCallback((id: string) => {
     setSelectedId(id);
-
     if (mapRef.current) {
       mapRef.current.focusProperty(id);
-      setTimeout(() => mapRef.current?.focusProperty(id), 320);
       return;
     }
-
     setFocusPropertyId(id);
-    setTimeout(() => setFocusPropertyId(id), 320);
   }, []);
 
   const selectedProperty = selectedId ? filteredProperties.find((p) => p.id === selectedId) : null;
@@ -166,6 +164,22 @@ const Index = () => {
               <MessageCircle size={13} strokeWidth={1.5} />
               Contato
             </a>
+            {session ? (
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-secondary text-foreground text-[11px] font-medium"
+              >
+                <LogOut size={13} strokeWidth={1.5} />
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/entrar")}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary text-foreground text-[11px] font-semibold"
+              >
+                <LogIn size={13} strokeWidth={1.5} />
+                Entrar
+              </button>
+            )}
           </div>
         </header>
 
@@ -258,6 +272,8 @@ const Index = () => {
                     isSelected={true}
                     onClick={() => setDetailProperty(selectedProperty.id)}
                     onExpand={() => setDetailProperty(selectedProperty.id)}
+                    isFavorite={favoriteIds.includes(selectedProperty.id)}
+                    onToggleFavorite={session ? () => toggleFavorite(selectedProperty.id) : undefined}
                   />
                 </div>
               ) : (
@@ -275,6 +291,8 @@ const Index = () => {
                         isSelected={selectedId === property.id}
                         onClick={() => handleSelect(property.id)}
                         onExpand={() => setDetailProperty(property.id)}
+                        isFavorite={favoriteIds.includes(property.id)}
+                        onToggleFavorite={session ? () => toggleFavorite(property.id) : undefined}
                       />
                     ))
                   )}
@@ -320,6 +338,23 @@ const Index = () => {
             <MessageCircle size={15} strokeWidth={1.5} />
             Fale conosco
           </a>
+          {session ? (
+            <button
+              onClick={() => signOut()}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-all"
+            >
+              <LogOut size={15} strokeWidth={1.5} />
+              Sair
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate("/entrar")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+            >
+              <LogIn size={15} strokeWidth={1.5} />
+              Entrar
+            </button>
+          )}
         </div>
       </header>
 
@@ -354,13 +389,14 @@ const Index = () => {
                   isSelected={selectedId === property.id}
                   onClick={() => {
                     handleSelect(property.id);
-                    setDetailProperty(property.id);
                     focusMapProperty(property.id);
                   }}
                   onExpand={() => {
                     setDetailProperty(property.id);
                     focusMapProperty(property.id);
                   }}
+                  isFavorite={favoriteIds.includes(property.id)}
+                  onToggleFavorite={session ? () => toggleFavorite(property.id) : undefined}
                 />
               ))
             )}
@@ -393,7 +429,7 @@ const Index = () => {
             setSelectedId(closingId);
             setTimeout(() => {
               focusMapProperty(closingId);
-            }, 260);
+            }, 350);
           }
         }}
         onViewOnMap={(id) => {
