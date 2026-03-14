@@ -121,12 +121,10 @@ const Index = () => {
 
     if (mapRef.current) {
       mapRef.current.focusProperty(id);
-      setTimeout(() => mapRef.current?.focusProperty(id), 320);
       return;
     }
 
     setFocusPropertyId(id);
-    setTimeout(() => setFocusPropertyId(id), 320);
   }, []);
 
   const selectedProperty = selectedId ? filteredProperties.find((p) => p.id === selectedId) : null;
@@ -273,8 +271,15 @@ const Index = () => {
                         key={property.id}
                         property={property}
                         isSelected={selectedId === property.id}
-                        onClick={() => handleSelect(property.id)}
-                        onExpand={() => setDetailProperty(property.id)}
+                        onClick={() => {
+                          handleSelect(property.id);
+                          setDetailProperty(property.id);
+                          focusMapProperty(property.id);
+                        }}
+                        onExpand={() => {
+                          setDetailProperty(property.id);
+                          focusMapProperty(property.id);
+                        }}
                       />
                     ))
                   )}
@@ -353,6 +358,7 @@ const Index = () => {
                   property={property}
                   isSelected={selectedId === property.id}
                   onClick={() => {
+                    // RESTAURADO: Abre o dialog e foca o pin ao clicar no card lateral
                     handleSelect(property.id);
                     setDetailProperty(property.id);
                     focusMapProperty(property.id);
@@ -389,16 +395,18 @@ const Index = () => {
           const closingId = detailProperty;
           setDetailProperty(null);
 
+          // Aguarda o Dialog fechar e garante que o mapa receba foco
           if (closingId) {
-            setSelectedId(closingId);
             setTimeout(() => {
               focusMapProperty(closingId);
-            }, 260);
+            }, 400);
           }
         }}
         onViewOnMap={(id) => {
           setDetailProperty(null);
-          focusMapProperty(id);
+          setTimeout(() => {
+            focusMapProperty(id);
+          }, 400);
         }}
       />
     </div>
