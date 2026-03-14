@@ -1,6 +1,7 @@
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp, Megaphone } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp, Megaphone, Heart } from 'lucide-react';
 import { useState, forwardRef } from 'react';
+import { Link } from 'react-router-dom';
 import ImageCarousel from './ImageCarousel';
 
 const SW = 1.5;
@@ -22,9 +23,11 @@ interface PropertyCardProps {
   isSelected: boolean;
   onClick: () => void;
   onExpand?: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
-const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick, onExpand }, ref) => {
+const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, isSelected, onClick, onExpand, isFavorite, onToggleFavorite }, ref) => {
   const [expanded, setExpanded] = useState(false);
   const isMidia = property.type === 'midia';
 
@@ -44,6 +47,19 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
             {propertyTypeLabels[property.type]}
           </span>
         </div>
+        {onToggleFavorite && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all z-10 shadow-sm"
+            aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          >
+            <Heart
+              size={16}
+              strokeWidth={SW}
+              className={isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+            />
+          </button>
+        )}
       </div>
 
       <button onClick={onClick} className="w-full text-left">
@@ -67,7 +83,7 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
         </div>
       </button>
 
-      <div className="px-3.5 pb-2">
+      <div className="px-3.5 pb-2 flex items-center justify-between">
         <button
           onClick={(e) => { e.stopPropagation(); onExpand ? onExpand() : setExpanded(!expanded); }}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
@@ -75,6 +91,13 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
           {!onExpand && expanded ? <ChevronUp size={14} strokeWidth={SW} /> : <ChevronDown size={14} strokeWidth={SW} />}
           {!onExpand ? (expanded ? 'Menos detalhes' : 'Mais detalhes') : 'Ver detalhes'}
         </button>
+        <Link
+          to={`/imovel/${property.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-xs text-primary hover:underline"
+        >
+          Abrir página
+        </Link>
       </div>
 
       {!onExpand && expanded && (
@@ -102,4 +125,3 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
 PropertyCard.displayName = 'PropertyCard';
 
 export default PropertyCard;
-

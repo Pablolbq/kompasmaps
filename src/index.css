@@ -150,13 +150,13 @@
 }
 
 .cluster-small {
-  background: hsl(20, 70%, 48%);
+  background: hsl(30, 80%, 68%);
   width: 36px;
   height: 36px;
 }
 
 .cluster-medium {
-  background: hsl(20, 70%, 42%);
+  background: hsl(25, 75%, 58%);
   width: 44px;
   height: 44px;
 }
@@ -166,7 +166,7 @@
 }
 
 .cluster-large {
-  background: hsl(20, 70%, 36%);
+  background: hsl(20, 70%, 50%);
   width: 52px;
   height: 52px;
 }
