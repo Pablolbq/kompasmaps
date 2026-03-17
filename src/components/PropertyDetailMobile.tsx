@@ -39,7 +39,20 @@ export default function PropertyDetailMobile({ property, onBack }: Props) {
             <ArrowLeft size={20} strokeWidth={SW} className="text-foreground" />
           </button>
           <h1 className="font-semibold text-sm text-foreground line-clamp-1 flex-1">{property.title}</h1>
-        </header>
+          <div className="flex items-center gap-1">
+            <FavoriteButton propertyId={property.id} />
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/imovel/${property.id}`;
+                navigator.clipboard.writeText(url);
+                toast.success('Link copiado!');
+              }}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              aria-label="Compartilhar"
+            >
+              <Share2 size={18} strokeWidth={1.5} className="text-muted-foreground" />
+            </button>
+          </div>
 
         <div className="flex-1 overflow-y-auto">
           <ImageCarousel
