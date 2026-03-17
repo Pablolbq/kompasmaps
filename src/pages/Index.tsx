@@ -167,6 +167,15 @@ const Index = () => {
               <MessageCircle size={13} strokeWidth={1.5} />
               Contato
             </a>
+            {session ? (
+              <button onClick={() => signOut()} className="p-1.5 rounded-lg bg-secondary">
+                <LogOut size={13} strokeWidth={1.5} className="text-secondary-foreground" />
+              </button>
+            ) : (
+              <Link to="/login" className="p-1.5 rounded-lg bg-primary">
+                <User size={13} strokeWidth={1.5} className="text-primary-foreground" />
+              </Link>
+            )}
           </div>
         </header>
 
