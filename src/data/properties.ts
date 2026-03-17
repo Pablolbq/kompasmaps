@@ -51,7 +51,7 @@ export const listingTypeLabels: Record<ListingType, string> = {
 };
 
 export function getWhatsAppLink(property: Property): string {
-  const propertyUrl = `${window.location.origin}/?imovel=${property.id}`;
+  const propertyUrl = `${window.location.origin}/imovel/${property.id}`;
   const message = encodeURIComponent(
     `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?\n\nLink: ${propertyUrl}`
   );

@@ -152,6 +152,19 @@ export default function PropertyDetailDialog({ property, open, onClose, onViewOn
                     Ver no mapa
                   </button>
                 )}
+
+                <FavoriteButton propertyId={property.id} />
+
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/imovel/${property.id}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success('Link copiado!');
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-all"
+                >
+                  <Share2 size={16} strokeWidth={SW} />
+                </button>
               </div>
             </div>
           </div>
