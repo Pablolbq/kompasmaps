@@ -21,6 +21,10 @@ export interface Property {
   mediaType?: MediaType;
 }
 
+export function formatPrice(price: number): string {
+  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
+
 /** Backward compat helper */
 export function getPropertyImage(property: Property): string {
   return property.images[0] ?? '/placeholder.svg';
