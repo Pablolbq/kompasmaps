@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ArrowLeft, Megaphone } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ArrowLeft, Megaphone, Share2 } from 'lucide-react';
 import ImageCarousel, { ImageLightbox } from './ImageCarousel';
+import FavoriteButton from './FavoriteButton';
+import { toast } from 'sonner';
 
 const SW = 1.5;
 
