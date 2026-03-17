@@ -328,6 +328,23 @@ const Index = () => {
             <MessageCircle size={15} strokeWidth={1.5} />
             Fale conosco
           </a>
+          {session ? (
+            <button
+              onClick={() => signOut()}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 transition-all"
+            >
+              <LogOut size={15} strokeWidth={1.5} />
+              Sair
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+            >
+              <User size={15} strokeWidth={1.5} />
+              Entrar
+            </Link>
+          )}
         </div>
       </header>
 
