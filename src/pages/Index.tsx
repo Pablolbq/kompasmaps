@@ -17,6 +17,7 @@ import logoIcon from "@/assets/logo-icon.png";
 const Index = () => {
   const isMobile = useIsMobile();
   const { data: properties = [], isLoading } = useProperties();
+  const { session, signOut } = useAuth();
   const [activeTypes, setActiveTypes] = useState<PropertyType[]>(["casa"]);
   const [activeListingTypes, setActiveListingTypes] = useState<ListingType[]>(["venda", "aluguel"]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
