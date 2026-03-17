@@ -1,7 +1,10 @@
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from '@/data/properties';
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp, Megaphone } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, ChevronDown, ChevronUp, Megaphone, Share2 } from 'lucide-react';
 import { useState, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import ImageCarousel from './ImageCarousel';
+import FavoriteButton from './FavoriteButton';
 
 const SW = 1.5;
 
@@ -43,6 +46,21 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
           <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${typeColors[property.type]}`}>
             {propertyTypeLabels[property.type]}
           </span>
+        </div>
+        <div className="absolute top-2 right-2 flex gap-1">
+          <FavoriteButton propertyId={property.id} className="bg-black/30 hover:bg-black/50 !p-1.5 [&_svg]:text-white" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/imovel/${property.id}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Link copiado!');
+            }}
+            className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 transition-colors"
+            aria-label="Compartilhar"
+          >
+            <Share2 size={14} strokeWidth={1.5} className="text-white" />
+          </button>
         </div>
       </div>
 

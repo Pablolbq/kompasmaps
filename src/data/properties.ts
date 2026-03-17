@@ -21,6 +21,10 @@ export interface Property {
   mediaType?: MediaType;
 }
 
+export function formatPrice(price: number): string {
+  return price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
+
 /** Backward compat helper */
 export function getPropertyImage(property: Property): string {
   return property.images[0] ?? '/placeholder.svg';
@@ -47,7 +51,7 @@ export const listingTypeLabels: Record<ListingType, string> = {
 };
 
 export function getWhatsAppLink(property: Property): string {
-  const propertyUrl = `${window.location.origin}/?imovel=${property.id}`;
+  const propertyUrl = `${window.location.origin}/imovel/${property.id}`;
   const message = encodeURIComponent(
     `Olá! Tenho interesse no imóvel: ${property.title} - ${property.neighborhood} - ${property.address} (${property.area}m², ${property.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}). Poderia me passar mais informações?\n\nLink: ${propertyUrl}`
   );
