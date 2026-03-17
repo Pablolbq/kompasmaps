@@ -53,6 +53,7 @@ export default function PropertyDetailMobile({ property, onBack }: Props) {
               <Share2 size={18} strokeWidth={1.5} className="text-muted-foreground" />
             </button>
           </div>
+        </header>
 
         <div className="flex-1 overflow-y-auto">
           <ImageCarousel
