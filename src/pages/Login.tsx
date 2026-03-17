@@ -14,13 +14,36 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  const isCustomDomain =
+    !window.location.hostname.includes('lovable.app') &&
+    !window.location.hostname.includes('lovableproject.com') &&
+    !window.location.hostname.includes('localhost');
+
   const handleGoogle = async () => {
     setGoogleLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      toast.error('Erro ao entrar com Google');
+    try {
+      if (isCustomDomain) {
+        // Custom domain: bypass auth-bridge
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+          return;
+        }
+      } else {
+        const { error } = await lovable.auth.signInWithOAuth('google', {
+          redirect_uri: window.location.origin,
+        });
+        if (error) throw error;
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao entrar com Google');
       setGoogleLoading(false);
     }
   };
