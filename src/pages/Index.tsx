@@ -1,14 +1,16 @@
 import { useState, useMemo, useCallback, useRef, TouchEvent as RTE } from "react";
 import L from "leaflet";
+import { Link } from "react-router-dom";
 import logoImg from "@/assets/logo.png";
 import { PropertyType, ListingType, WHATSAPP_NUMBER } from "@/data/properties";
 import { useProperties } from "@/hooks/useProperties";
+import { useAuth } from "@/hooks/useAuth";
 import PropertyMap, { PropertyMapHandle } from "@/components/PropertyMap";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyFilters, { AdvancedFilters, emptyAdvancedFilters } from "@/components/PropertyFilters";
 import PropertyDetailDialog from "@/components/PropertyDetailDialog";
 import PropertyDetailMobile from "@/components/PropertyDetailMobile";
-import { Search, X, Loader2, MapPin, MessageCircle } from "lucide-react";
+import { Search, X, Loader2, MapPin, MessageCircle, User, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoIcon from "@/assets/logo-icon.png";
 
