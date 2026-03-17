@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Property, propertyTypeLabels, getWhatsAppLink, mediaTypeLabels } from "@/data/properties";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone, MapPinned } from "lucide-react";
+import { MapPin, BedDouble, Bath, Ruler, Car, MessageCircle, Megaphone, MapPinned, Share2 } from "lucide-react";
 import ImageCarousel, { ImageLightbox } from "./ImageCarousel";
+import FavoriteButton from "./FavoriteButton";
+import { toast } from "sonner";
 
 const SW = 1.5;
 
