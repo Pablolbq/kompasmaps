@@ -47,6 +47,21 @@ const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(({ property, 
             {propertyTypeLabels[property.type]}
           </span>
         </div>
+        <div className="absolute top-2 right-2 flex gap-1">
+          <FavoriteButton propertyId={property.id} className="bg-black/30 hover:bg-black/50 !p-1.5 [&_svg]:text-white" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/imovel/${property.id}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Link copiado!');
+            }}
+            className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 transition-colors"
+            aria-label="Compartilhar"
+          >
+            <Share2 size={14} strokeWidth={1.5} className="text-white" />
+          </button>
+        </div>
       </div>
 
       <button onClick={onClick} className="w-full text-left">
