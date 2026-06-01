@@ -363,8 +363,15 @@ const PropertyMap = forwardRef<PropertyMapHandle, PropertyMapProps>(function Pro
   return (
     <MapContainer center={[-25.0945, -50.1633]} zoom={13} className="h-full w-full" zoomControl={false} ref={mapRef}>
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+        subdomains={["a", "b", "c", "d"]}
+      />
+      <TileLayer
+        attribution=""
+        url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png"
+        subdomains={["a", "b", "c", "d"]}
+        pane="overlayPane"
       />
       <MapClickHandler onDeselect={onDeselect} />
       <BoundsReporter onBoundsChange={onBoundsChange} />
