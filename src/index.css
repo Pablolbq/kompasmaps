@@ -101,13 +101,13 @@
 .leaflet-container {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
   z-index: 1;
-  background: hsl(0 0% 89%) !important;
+  background: hsl(0 0% 84%) !important;
 }
 
-/* Minimal basemap: keep water/lakes/rivers blue, parks green, streets white,
-   and built-up land neutral with a small contrast lift. */
+/* Minimal basemap: push streets to pure white and darken built-up land via
+   higher contrast, while keeping water blue and parks green via saturation. */
 .leaflet-tile-pane .leaflet-layer:first-child .leaflet-tile {
-  filter: brightness(1.04) contrast(0.9) saturate(1.28) hue-rotate(-2deg);
+  filter: brightness(1.02) contrast(1.22) saturate(1.35) hue-rotate(-2deg);
 }
 
 /* Labels overlay: desaturate so all writings share a uniform muted grey tone. */
