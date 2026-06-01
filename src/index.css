@@ -101,13 +101,13 @@
 .leaflet-container {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif !important;
   z-index: 1;
-  background: #efefef !important;
+  background: #e2e2e2 !important;
 }
 
-/* Minimal basemap: flatten Positron tiles toward a single grey palette
-   so land becomes ~#EFEFEF, parks stay a subtle light green, and roads stay white. */
+/* Minimal basemap: keep water blue and parks green, only slightly darken
+   the built-up land so it reads as a calm mid-light grey. */
 .leaflet-tile-pane .leaflet-layer:first-child .leaflet-tile {
-  filter: grayscale(0.55) brightness(1.04) contrast(0.92) saturate(0.55);
+  filter: brightness(0.93) contrast(0.96) saturate(1.05);
 }
 
 /* Labels overlay: desaturate so all writings share a uniform muted grey tone. */
